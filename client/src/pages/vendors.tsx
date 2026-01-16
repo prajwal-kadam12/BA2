@@ -75,7 +75,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { TablePagination } from "@/components/table-pagination";
 import { usePagination } from "@/hooks/use-pagination";
-import { formatCurrency } from "@/lib/utils";
+// removed import { formatCurrency } from "@/lib/utils";
 import { robustIframePrint } from "@/lib/robust-print";
 
 interface Vendor {
@@ -162,6 +162,7 @@ interface VendorDetailPanelProps {
 }
 
 function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPanelProps) {
+    const [, setLocation] = useLocation();
     const { toast } = useToast();
     const [activeTab, setActiveTab] = useState("overview");
     const [comments, setComments] = useState<Comment[]>([]);
@@ -251,8 +252,12 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
         }
     };
 
+    const handlePrint = () => {
+        robustIframePrint("vendor-statement");
+    };
+
     const toggleSection = (section: string) => {
-        setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+        setExpandedSections((prev: Record<string, boolean>) => ({ ...prev, [section]: !prev[section] }));
     };
 
     const formatDate = (dateString: string) => {
@@ -546,11 +551,286 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                         </div>
                     </div>
                 </TabsContent>
+
+                <TabsContent value="transactions" className="flex-1 overflow-auto p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                            <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
+                            <p className="text-slate-500 font-medium">Fetching transaction history...</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {[
+                                { id: 'bills', label: 'Bills', icon: Receipt, count: transactions.bills.length, items: transactions.bills },
+                                { id: 'billPayments', label: 'Payments Made', icon: CreditCard, count: transactions.billPayments.length, items: transactions.billPayments },
+                                { id: 'expenses', label: 'Expenses', icon: BadgeIndianRupee, count: transactions.expenses.length, items: transactions.expenses },
+                                { id: 'purchaseOrders', label: 'Purchase Orders', icon: Briefcase, count: transactions.purchaseOrders.length, items: transactions.purchaseOrders },
+                                { id: 'vendorCredits', label: 'Vendor Credits', icon: Notebook, count: transactions.vendorCredits.length, items: transactions.vendorCredits }
+                            ].map((section) => (
+                                <Collapsible
+                                    key={section.id}
+                                    open={expandedSections[section.id]}
+                                    onOpenChange={() => toggleSection(section.id)}
+                                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
+                                >
+                                    <CollapsibleTrigger asChild>
+                                        <div className="w-full px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`p-2 rounded-lg ${section.count > 0 ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600' : 'bg-slate-50 dark:bg-slate-700 text-slate-400'}`}>
+                                                    <section.icon className="h-4 w-4" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white capitalize">{section.label}</h4>
+                                                    <p className="text-xs text-slate-500">{section.count} {section.count === 1 ? 'record' : 'records'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                {section.count > 0 && <Badge variant="outline" className="bg-blue-50/50 text-blue-600 border-blue-100 hidden sm:inline-flex">View All</Badge>}
+                                                <div className={`p-1 rounded-md bg-slate-100 dark:bg-slate-700 transition-transform duration-200 ${expandedSections[section.id] ? 'rotate-180' : ''}`}>
+                                                    <ChevronDown className="h-4 w-4 text-slate-500" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <div className="border-t border-slate-100 dark:border-slate-700 overflow-x-auto">
+                                            {section.items.length === 0 ? (
+                                                <div className="px-5 py-8 text-center bg-slate-50/30 dark:bg-slate-900/10">
+                                                    <p className="text-sm text-slate-400">No {section.label.toLowerCase()} found for this period.</p>
+                                                </div>
+                                            ) : (
+                                                <table className="w-full text-sm">
+                                                    <thead>
+                                                        <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                                                            <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                                            <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Number</th>
+                                                            <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                                                            <th className="px-5 py-2.5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
+                                                            <th className="px-5 py-2.5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Balance</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                                        {section.items.map((item) => (
+                                                            <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors group" onClick={() => setLocation(`/${section.id === 'billPayments' ? 'payments-made' : section.id === 'vendorCredits' ? 'vendor-credits' : section.id}/${item.id}`)}>
+                                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{formatDate(item.date)}</td>
+                                                                <td className="px-5 py-3 text-blue-600 font-semibold group-hover:underline decoration-blue-300 underline-offset-4">{item.number}</td>
+                                                                <td className="px-5 py-3">
+                                                                    <Badge variant="outline" className={`
+                                                                        ${item.status === 'Paid' || item.status === 'Sent' || item.status === 'Closed' ? 'bg-green-50 text-green-600 border-green-200' : ''}
+                                                                        ${item.status === 'Partially Paid' ? 'bg-yellow-50 text-yellow-600 border-yellow-200' : ''}
+                                                                        ${item.status === 'Open' || item.status === 'Draft' ? 'bg-blue-50 text-blue-600 border-blue-200' : ''}
+                                                                        ${item.status === 'Overdue' ? 'bg-red-50 text-red-600 border-red-200' : ''}
+                                                                    `}>
+                                                                        {item.status}
+                                                                    </Badge>
+                                                                </td>
+                                                                <td className="px-5 py-3 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">{formatCurrency(item.amount)}</td>
+                                                                <td className="px-5 py-3 text-right font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{formatCurrency(item.balance)}</td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            )}
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            ))}
+                        </div>
+                    )}
+                </TabsContent>
+
+                <TabsContent value="mails" className="flex-1 overflow-auto p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                                <Mail className="h-5 w-5 text-blue-600" />
+                                Communication History
+                            </h3>
+                            <Button variant="outline" size="sm" className="gap-2">
+                                <Send className="h-4 w-4" /> Send Email
+                            </Button>
+                        </div>
+
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                                <Loader2 className="h-8 w-8 text-blue-600 animate-spin mb-4" />
+                                <p className="text-slate-500">Loading mails...</p>
+                            </div>
+                        ) : mails.length === 0 ? (
+                            <div className="text-center py-24 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
+                                <Mail className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                                <h3 className="text-lg font-medium text-slate-900 dark:text-white">No mails sent yet</h3>
+                                <p className="text-slate-500 max-w-xs mx-auto mt-1">When you send statements, bills, or receipts to this vendor, they will appear here.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {mails.map((mail) => (
+                                    <div key={mail.id} className="p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex gap-4">
+                                                <div className="h-10 w-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 group-hover:text-blue-600 transition-colors">
+                                                    <Mail className="h-5 w-5" />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <h4 className="font-semibold text-slate-900 dark:text-white truncate group-hover:text-blue-600 transition-colors">{mail.subject}</h4>
+                                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1">
+                                                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                                                            <User className="h-3 w-3" /> To: {mail.to}
+                                                        </span>
+                                                        <span className="text-xs text-slate-500 flex items-center gap-1">
+                                                            <Clock className="h-3 w-3" /> {formatDate(mail.date)}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Badge className={`
+                                                ${mail.status === 'Sent' || mail.status === 'Delivered' ? 'bg-green-50 text-green-600 border-green-100' : 'bg-slate-100 text-slate-600 border-slate-200'}
+                                            `}>
+                                                {mail.status}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="statement" className="flex-1 overflow-hidden flex flex-col p-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="flex-none p-4 px-6 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="sm" className="gap-2">
+                                        <Filter className="h-4 w-4" /> This Month
+                                        <ChevronDown className="h-3 w-3" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start">
+                                    <DropdownMenuItem>This Month</DropdownMenuItem>
+                                    <DropdownMenuItem>Last Month</DropdownMenuItem>
+                                    <DropdownMenuItem>This Quarter</DropdownMenuItem>
+                                    <DropdownMenuItem>Last Quarter</DropdownMenuItem>
+                                    <DropdownMenuItem>Financial Year</DropdownMenuItem>
+                                    <DropdownMenuItem>Custom Range</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint}>
+                                <Printer className="h-4 w-4" /> Print
+                            </Button>
+                            <Button variant="outline" size="sm" className="gap-2">
+                                <Download className="h-4 w-4" /> PDF
+                            </Button>
+                            <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2" size="sm">
+                                <Send className="h-4 w-4" /> Send Email
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-900/90 p-8 flex justify-center">
+                        <div id="vendor-statement" className="w-full max-w-[800px] bg-white dark:bg-white text-black p-12 shadow-2xl rounded-sm min-h-[1000px] flex flex-col">
+                            <div className="flex justify-between items-start mb-12 border-b-2 border-slate-100 pb-10">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-slate-900 mb-2 uppercase tracking-tight">Statement</h1>
+                                    <p className="text-slate-500 font-medium">For the period: 01 Jan 2026 - 31 Jan 2026</p>
+                                </div>
+                                <div className="text-right">
+                                    <div className="h-14 w-14 bg-blue-600 rounded-xl flex items-center justify-center text-white mb-4 ml-auto">
+                                        <Building2 className="h-8 w-8" />
+                                    </div>
+                                    <h2 className="text-xl font-bold text-slate-900">ACME Corporation</h2>
+                                    <p className="text-sm text-slate-500 mt-1">Maharashtra, India</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-12 mb-12">
+                                <div>
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-4 tracking-widest">To:</h3>
+                                    <p className="font-bold text-lg text-slate-900 mb-1">{vendor.name}</p>
+                                    <p className="text-slate-600 leading-relaxed font-medium">
+                                        {vendor.billingAddress?.street1}<br />
+                                        {vendor.billingAddress?.city}, {vendor.billingAddress?.state}<br />
+                                        {vendor.billingAddress?.pinCode}
+                                    </p>
+                                </div>
+                                <div>
+                                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100">
+                                        <h3 className="text-[10px] font-bold text-slate-400 uppercase mb-3 tracking-widest">Account Summary</h3>
+                                        <div className="space-y-2">
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-slate-600">Opening Balance</span>
+                                                <span className="font-semibold text-slate-900">{formatCurrency(vendor.openingBalance || 0)}</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm text-blue-600 font-bold border-t border-slate-200 pt-2 mt-2">
+                                                <span className="uppercase text-[11px] tracking-tight">Current Balance</span>
+                                                <span className="text-lg">{formatCurrency(vendor.payables || 0)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <table className="w-full text-sm mb-12 flex-1">
+                                <thead>
+                                    <tr className="border-y-2 border-slate-900">
+                                        <th className="py-4 text-left font-bold uppercase tracking-wider text-[11px]">Date</th>
+                                        <th className="py-4 text-left font-bold uppercase tracking-wider text-[11px]">Description</th>
+                                        <th className="py-4 text-right font-bold uppercase tracking-wider text-[11px]">Credits</th>
+                                        <th className="py-4 text-right font-bold uppercase tracking-wider text-[11px]">Debits</th>
+                                        <th className="py-4 text-right font-bold uppercase tracking-wider text-[11px]">Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    <tr className="bg-slate-50/50">
+                                        <td className="py-4 italic font-medium">01/01/2026</td>
+                                        <td className="py-4 font-bold text-slate-600">Opening Balance</td>
+                                        <td className="py-4 text-right font-medium">-</td>
+                                        <td className="py-4 text-right font-medium">-</td>
+                                        <td className="py-4 text-right font-bold">{formatCurrency(vendor.openingBalance || 0)}</td>
+                                    </tr>
+                                    {transactions.bills.slice(0, 8).map((bill) => (
+                                        <tr key={bill.id}>
+                                            <td className="py-4 font-medium text-slate-600">{formatDate(bill.date)}</td>
+                                            <td className="py-4">
+                                                <p className="font-bold text-slate-900">Bill: {bill.number}</p>
+                                                <p className="text-[11px] text-slate-500 font-medium">Purchase Order: {bill.orderNumber || 'N/A'}</p>
+                                            </td>
+                                            <td className="py-4 text-right font-bold text-red-600">{formatCurrency(bill.amount)}</td>
+                                            <td className="py-4 text-right font-medium">-</td>
+                                            <td className="py-4 text-right font-bold">{formatCurrency(bill.balance)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div className="border-t-2 border-slate-900 pt-8 mt-auto flex justify-end">
+                                <div className="w-64 space-y-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-500 font-bold uppercase tracking-tight text-[11px]">Total Purchases</span>
+                                        <span className="font-bold text-slate-900">{formatCurrency(transactions.bills.reduce((acc, b) => acc + b.amount, 0))}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-500 font-bold uppercase tracking-tight text-[11px]">Total Payments</span>
+                                        <span className="font-bold text-slate-900">{formatCurrency(transactions.billPayments.reduce((acc, p) => acc + p.amount, 0))}</span>
+                                    </div>
+                                    <div className="flex justify-between pt-4 border-t border-slate-200">
+                                        <span className="text-lg font-black uppercase tracking-tighter text-blue-600">Balance Due</span>
+                                        <span className="text-2xl font-black text-blue-600">{formatCurrency(vendor.payables || 0)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-20 text-[10px] text-slate-400 text-center uppercase tracking-[0.2em] font-bold">
+                                This is a computer generated document.
+                            </div>
+                        </div>
+                    </div>
+                </TabsContent>
             </Tabs>
         </div>
     );
 }
-import { X } from "lucide-react";
 
 export default function VendorsPage() {
     const [, setLocation] = useLocation();

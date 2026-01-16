@@ -54,7 +54,15 @@
       "payables": 0,
       "unusedCredits": 0,
       "createdAt": "2025-12-10T12:04:16.268Z",
-      "updatedAt": "2025-12-10T12:04:16.269Z"
+      "updatedAt": "2025-12-10T12:04:16.269Z",
+      "comments": [
+        {
+          "id": "1768547903572",
+          "text": "ok",
+          "author": "Admin User",
+          "createdAt": "2026-01-16T07:18:23.572Z"
+        }
+      ]
     },
     {
       "id": "2",

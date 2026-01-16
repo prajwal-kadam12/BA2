@@ -1,6 +1,71 @@
 {
   "bills": [
     {
+      "id": "1768547961454",
+      "organizationId": "1",
+      "billNumber": "25",
+      "orderNumber": "",
+      "vendorId": "1",
+      "vendorName": "Nilraj Bhilare",
+      "vendorAddress": {
+        "street1": "",
+        "street2": "",
+        "city": "",
+        "state": "",
+        "pinCode": "",
+        "country": "India",
+        "gstin": ""
+      },
+      "billDate": "2026-01-16",
+      "dueDate": "2026-01-16",
+      "paymentTerms": "Due on Receipt",
+      "reverseCharge": false,
+      "subject": "",
+      "items": [
+        {
+          "id": "1768547946346",
+          "itemName": "Rice",
+          "description": "Premium quality rice sourced from local farms. Ideal for daily cooking, delivers consistent taste and texture.\n",
+          "account": "input_cgst",
+          "quantity": 1,
+          "rate": 50,
+          "tax": "",
+          "taxAmount": 0,
+          "customerDetails": "none",
+          "amount": 50
+        }
+      ],
+      "subTotal": 50,
+      "discountType": "percent",
+      "discountValue": 0,
+      "discountAmount": 0,
+      "taxType": "TDS",
+      "taxCategory": "",
+      "taxAmount": 0,
+      "adjustment": 0,
+      "adjustmentDescription": "",
+      "total": 50,
+      "amountPaid": 0,
+      "balanceDue": 50,
+      "notes": "",
+      "attachments": [],
+      "status": "OPEN",
+      "pdfTemplate": "Standard Template",
+      "journalEntries": [],
+      "createdAt": "2026-01-16T07:19:21.454Z",
+      "updatedAt": "2026-01-16T07:19:21.454Z",
+      "createdBy": "Admin User",
+      "activityLogs": [
+        {
+          "id": "1",
+          "timestamp": "2026-01-16T07:19:21.454Z",
+          "action": "created",
+          "description": "Bill created for ₹50",
+          "user": "Admin User"
+        }
+      ]
+    },
+    {
       "id": "1767873525733",
       "organizationId": "1",
       "billNumber": "24",
@@ -1165,7 +1230,7 @@
       ]
     }
   ],
-  "nextBillNumber": 25,
+  "nextBillNumber": 26,
   "accounts": [
     {
       "id": "1",
