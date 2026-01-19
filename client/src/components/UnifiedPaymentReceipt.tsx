@@ -67,16 +67,14 @@ export function UnifiedPaymentReceipt({
     organization?: any;
     isPreview?: boolean;
 }) {
-    // Fixed A4 dimensions - SINGLE SOURCE OF TRUTH
-    // In preview mode: use max-width to allow scaling
-    // In download mode: use fixed width for PDF generation
+    // Fixed A4 dimensions
     const pageStyle: React.CSSProperties = {
         width: isPreview ? '100%' : '210mm',
         maxWidth: '210mm',
-        minHeight: '297mm',
+        minHeight: '296mm',
         backgroundColor: '#ffffff',
-        color: '#000000',
-        fontFamily: 'Arial, Helvetica, sans-serif',
+        color: '#0f172a',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         fontSize: '14px',
         lineHeight: '1.5',
         margin: '0 auto',
@@ -87,15 +85,15 @@ export function UnifiedPaymentReceipt({
     };
 
     const containerStyle: React.CSSProperties = {
-        padding: '48px',
-        color: '#000000',
+        padding: '40px',
+        color: '#0f172a',
     };
 
     return (
-        <div style={pageStyle}>
+        <div style={pageStyle} id="payment-receipt-content">
             <div style={containerStyle}>
                 {/* Header */}
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '40px' }}>
                     <SalesPDFHeader
                         organization={organization}
                         logo={branding?.logo}
@@ -105,157 +103,79 @@ export function UnifiedPaymentReceipt({
                     />
                 </div>
 
-                {/* Payment Details */}
-                <div style={{ marginBottom: '32px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ color: '#4b5563' }}>Payment Date</span>
-                        <span style={{ fontWeight: '600', color: '#0f172a' }}>{formatDate(payment.date)}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ color: '#4b5563' }}>Reference Number</span>
-                        <span style={{ fontWeight: '600', color: '#0f172a' }}>{payment.referenceNumber || '-'}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <span style={{ color: '#4b5563' }}>Payment Mode</span>
-                        <span style={{ fontWeight: '600', color: '#0f172a' }}>{payment.mode}</span>
-                    </div>
-                </div>
-
-                {/* Amount Section */}
-                <div style={{ marginBottom: '32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-                    <div>
-                        <p style={{ fontSize: '12px', color: '#4b5563', fontWeight: '600', marginBottom: '8px', margin: '0 0 8px 0' }}>
-                            Amount Received In Words
-                        </p>
-                        <p style={{ fontWeight: '600', color: '#0f172a', margin: '0' }}>{payment.amountInWords || 'N/A'}</p>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-start' }}>
-                        <div style={{
-                            backgroundColor: '#16a34a',
-                            color: '#ffffff',
-                            padding: '12px 32px',
-                            borderRadius: '4px',
-                            textAlign: 'center',
-                        }}>
-                            <div style={{ fontSize: '12px', fontWeight: '500', color: '#ffffff', marginBottom: '4px' }}>
-                                Amount Received
-                            </div>
-                            <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#ffffff' }}>
-                                {formatCurrency(payment.amount)}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Received From */}
-                <div style={{ marginBottom: '32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px' }}>
-                    <div>
-                        <h4 style={{
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            color: '#374151',
-                            marginBottom: '12px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            margin: '0 0 12px 0',
-                        }}>
+                {/* Received From & Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-10" style={{ display: 'grid', marginBottom: '40px' }}>
+                    <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+                        <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
                             RECEIVED FROM
                         </h4>
-                        <p style={{ fontWeight: 'bold', color: '#0f172a', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                        <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
                             {payment.customerName}
                         </p>
-                        <div style={{ fontSize: '12px', color: '#4b5563' }}>
-                            <p style={{ margin: '2px 0' }}>{payment.placeOfSupply || '(MH) - Maharashtra'}</p>
-                            <p style={{ margin: '2px 0' }}>India</p>
+                        <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+                            <p style={{ margin: '0' }}>{payment.customerEmail}</p>
+                            <p style={{ margin: '0' }}>{payment.placeOfSupply || 'Place of Supply Not Specified'}</p>
                         </div>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                        <div style={{ textAlign: 'right' }}>
-                            <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '48px', margin: '0 0 48px 0' }}>
-                                Authorized Signature
-                            </p>
-                            {branding?.signature?.url && (
-                                <img
-                                    src={branding.signature.url}
-                                    alt="Signature"
-                                    style={{ height: '48px', width: 'auto', display: 'block', marginLeft: 'auto' }}
-                                />
-                            )}
+                    <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+                        <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+                            PAYMENT TO
+                        </h4>
+                        <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                            {organization?.name || 'Your Company'}
+                        </p>
+                        <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+                            <p style={{ margin: '0' }}>{organization?.street1 || ''} {organization?.city || ''}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Invoice Table */}
+                {/* Meta Information Bar */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-[2px] mb-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-100" style={{
+                    marginBottom: '40px',
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #f1f5f9'
+                }}>
+                    <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Payment Date</p>
+                        <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{formatDate(payment.date)}</p>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Reference#</p>
+                        <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{payment.referenceNumber || '-'}</p>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Payment Mode</p>
+                        <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0', textTransform: 'uppercase' }}>{payment.mode}</p>
+                    </div>
+                    <div style={{ backgroundColor: '#ffffff', padding: '16px', borderLeft: '2px solid #f1f5f9' }}>
+                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#16a34a', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Amount Received</p>
+                        <p style={{ fontSize: '16px', fontWeight: '900', color: '#16a34a', margin: '0' }}>{formatCurrency(payment.amount)}</p>
+                    </div>
+                </div>
+
+                {/* Invoices Table */}
                 {payment.invoices && payment.invoices.length > 0 && (
-                    <div style={{ marginBottom: '32px' }}>
-                        <h4 style={{
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            color: '#374151',
-                            marginBottom: '12px',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            margin: '0 0 12px 0',
-                        }}>
-                            Payment For
+                    <div style={{ marginBottom: '40px' }}>
+                        <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '16px', margin: '0 0 16px 0' }}>
+                            PAYMENT FOR
                         </h4>
-                        <table style={{
-                            width: '100%',
-                            fontSize: '12px',
-                            borderCollapse: 'collapse',
-                            border: 'none',
-                        }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                             <thead>
-                                <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #d1d5db' }}>
-                                    <th style={{
-                                        textAlign: 'left',
-                                        padding: '8px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                    }}>
-                                        Invoice Number
-                                    </th>
-                                    <th style={{
-                                        textAlign: 'left',
-                                        padding: '8px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                    }}>
-                                        Invoice Date
-                                    </th>
-                                    <th style={{
-                                        textAlign: 'right',
-                                        padding: '8px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                    }}>
-                                        Invoice Amount
-                                    </th>
-                                    <th style={{
-                                        textAlign: 'right',
-                                        padding: '8px',
-                                        fontWeight: '600',
-                                        color: '#374151',
-                                    }}>
-                                        Payment Amount
-                                    </th>
+                                <tr style={{ backgroundColor: '#1e40af', color: '#ffffff' }}>
+                                    <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', borderRadius: '4px 0 0 0' }}>Invoice Number</th>
+                                    <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Invoice Date</th>
+                                    <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Invoice Amount</th>
+                                    <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderRadius: '0 4px 0 0' }}>Amount Paid</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {payment.invoices.map((invoice: any, index: number) => (
-                                    <tr key={index} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                                        <td style={{ padding: '8px', color: '#0f172a' }}>
-                                            {invoice.invoiceNumber || '-'}
-                                        </td>
-                                        <td style={{ padding: '8px', color: '#0f172a' }}>
-                                            {invoice.date ? formatDate(invoice.date) : '-'}
-                                        </td>
-                                        <td style={{ padding: '8px', color: '#0f172a', textAlign: 'right' }}>
-                                            {formatCurrency(invoice.amount || 0)}
-                                        </td>
-                                        <td style={{ padding: '8px', color: '#0f172a', textAlign: 'right' }}>
-                                            {formatCurrency(invoice.paymentAmount || invoice.amount || 0)}
-                                        </td>
+                                    <tr key={index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '700', color: '#1e40af' }}>{invoice.invoiceNumber || '-'}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569' }}>{invoice.date ? formatDate(invoice.date) : '-'}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#475569', textAlign: 'right' }}>{formatCurrency(invoice.total || invoice.amount || 0)}</td>
+                                        <td style={{ padding: '12px 16px', fontSize: '13px', fontWeight: '800', color: '#16a34a', textAlign: 'right' }}>{formatCurrency(invoice.paidAmount || invoice.paymentAmount || invoice.amount || 0)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -263,21 +183,58 @@ export function UnifiedPaymentReceipt({
                     </div>
                 )}
 
-                {/* Over Payment */}
-                {payment.unusedAmount > 0 && (
+                {/* Overpayment Stats */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '40px' }}>
                     <div style={{
-                        paddingTop: '16px',
-                        borderTop: '1px solid #d1d5db',
-                        textAlign: 'center',
+                        width: '320px',
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '8px',
+                        padding: '20px',
+                        border: '1px solid #f1f5f9',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                     }}>
-                        <p style={{ fontSize: '12px', color: '#4b5563', marginBottom: '4px', margin: '0 0 4px 0' }}>
-                            Over payment
+                        <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Balance Amount</span>
+                        <span style={{ fontSize: '18px', color: '#0f172a', fontWeight: '900' }}>{formatCurrency(payment.unusedAmount || 0)}</span>
+                    </div>
+                </div>
+
+                {/* Amount in Words */}
+                {payment.amountInWords && (
+                    <div style={{
+                        padding: '20px',
+                        backgroundColor: '#f8fafc',
+                        borderRadius: '8px',
+                        borderLeft: '4px solid #1e40af',
+                        marginBottom: '40px'
+                    }}>
+                        <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>
+                            Amount In Words
                         </p>
-                        <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#0f172a', margin: '0' }}>
-                            {formatCurrency(payment.unusedAmount)}
+                        <p style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', fontStyle: 'italic', margin: '0' }}>
+                            {payment.amountInWords} Only
                         </p>
                     </div>
                 )}
+
+                {/* Signature Section */}
+                <div style={{ marginTop: '64px', display: 'flex', justifyContent: 'flex-end', textAlign: 'center' }}>
+                    <div>
+                        {branding?.signature?.url ? (
+                            <img
+                                src={branding.signature.url}
+                                alt="Signature"
+                                style={{ maxHeight: '80px', maxWidth: '200px', objectFit: 'contain', marginBottom: '8px' }}
+                            />
+                        ) : (
+                            <div style={{ height: '80px', width: '200px', borderBottom: '1px solid #e2e8f0', marginBottom: '8px' }}></div>
+                        )}
+                        <p style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '1px', margin: '0' }}>
+                            Authorized Signature
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );

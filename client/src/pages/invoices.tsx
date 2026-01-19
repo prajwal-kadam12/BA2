@@ -24,18 +24,18 @@ import {
     MessageSquare,
     CreditCard,
     HelpCircle,
-    Mail,
+    ArrowLeft,
     Printer,
-    Copy,
+    Share2,
     X,
+    Clock,
+    Save,
     Menu,
     Search,
     Filter,
     ChevronDown,
     CheckCircle,
-    Clock,
     AlertCircle,
-    Share2,
     FileText,
     Repeat,
     FileCheck,
@@ -43,7 +43,11 @@ import {
     Ban,
     BookOpen,
     Settings,
-    RotateCcw
+    RotateCcw,
+    Mail,
+    Copy,
+    ArrowUpDown,
+    RefreshCw
 } from "lucide-react";
 import {
     DropdownMenu,
@@ -51,6 +55,10 @@ import {
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuPortal,
+    DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
     AlertDialog,
@@ -204,155 +212,190 @@ const getActivityIcon = (action: string) => {
 
 const InvoicePDFView = ({ invoice, branding, organization }: { invoice: InvoiceDetail, branding: any, organization: any }) => {
     return (
-        <div className="bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <div className="p-10 text-black">
-                {/* Standard Sales PDF Header */}
-                <div className="mb-2">
-                    <SalesPDFHeader
-                        logo={branding?.logo || undefined}
-                        documentTitle="Invoice"
-                        documentNumber={invoice.invoiceNumber}
-                        date={invoice.date}
-                        referenceNumber={invoice.referenceNumber}
-                        organization={organization || undefined}
-                    />
-                </div>
-
-                {/* Status and Balance Due */}
-                <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
-                    <Badge className={`${getStatusColor(invoice.status)} px-3 py-1`}>
-                        {invoice.status}
-                    </Badge>
-                </div>
-
-                {/* Bill To and Invoice Details */}
-                <div className="grid grid-cols-2 gap-12 mb-8">
-                    <div>
-                        <p className="text-xs text-slate-500 uppercase font-bold mb-3 tracking-wide">BILL TO</p>
-                        <p className="font-bold text-blue-600 mb-2 text-base">{invoice.customerName}</p>
-                        <div className="text-sm text-slate-700 space-y-0.5">
-                            {formatAddress(invoice.billingAddress).map((line, i) => (
-                                <p key={i}>{line}</p>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="text-sm">
-                        <div className="space-y-3">
-                            <div className="flex justify-between border-b border-slate-100 pb-1">
-                                <span className="text-slate-600 font-medium">Invoice Date</span>
-                                <span className="font-semibold text-slate-900">{formatDate(invoice.date)}</span>
-                            </div>
-                            <div className="flex justify-between border-b border-slate-100 pb-1">
-                                <span className="text-slate-600 font-medium">Terms</span>
-                                <span className="font-semibold text-slate-900">{invoice.paymentTerms || 'Due on Receipt'}</span>
-                            </div>
-                            <div className="flex justify-between border-b border-slate-100 pb-1">
-                                <span className="text-slate-600 font-medium">Due Date</span>
-                                <span className="font-semibold text-slate-900">{formatDate(invoice.dueDate)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Items Table */}
-                <div className="mb-6">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-slate-100 border-y-2 border-slate-300">
-                                <th className="py-2 px-2 text-left text-[10px] font-bold text-slate-700 uppercase tracking-wide">#</th>
-                                <th className="py-2 px-2 text-left text-[10px] font-bold text-slate-700 uppercase tracking-wide">ITEM & DESCRIPTION</th>
-                                <th className="py-2 px-2 text-center text-[10px] font-bold text-slate-700 uppercase tracking-wide">QTY</th>
-                                <th className="py-2 px-2 text-right text-[10px] font-bold text-slate-700 uppercase tracking-wide">RATE</th>
-                                <th className="py-2 px-2 text-right text-[10px] font-bold text-slate-700 uppercase tracking-wide">AMOUNT</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(invoice.items || []).map((item: any, index: number) => (
-                                <tr key={item.id || index} className="border-b border-slate-200">
-                                    <td className="py-2 px-2 text-xs text-slate-900">{index + 1}</td>
-                                    <td className="py-2 px-2">
-                                        <p className="text-xs font-semibold text-slate-900">{item.name}</p>
-                                        {item.description && (
-                                            <p className="text-[10px] text-slate-500 mt-0.5">{item.description}</p>
-                                        )}
-                                    </td>
-                                    <td className="py-2 px-2 text-xs text-center text-slate-900">{item.quantity}</td>
-                                    <td className="py-2 px-2 text-xs text-right text-slate-900">{formatCurrency(item.rate)}</td>
-                                    <td className="py-2 px-2 text-xs text-right font-semibold text-slate-900">{formatCurrency(item.amount)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Totals Section with Notes & Terms on Left */}
-                <div className="flex gap-6 mb-8">
-                    {/* Left Side - Customer Notes & Terms */}
-                    <div className="flex-1 space-y-4 text-xs">
-                        {invoice.customerNotes && (
-                            <div>
-                                <p className="text-[12px] text-slate-900 uppercase font-bold mb-2 tracking-wide">CUSTOMER NOTES</p>
-                                <p className="text-[11px] text-slate-700 leading-relaxed">{invoice.customerNotes}</p>
-                            </div>
-                        )}
-                        {invoice.termsAndConditions && (
-                            <div>
-                                <p className="text-[12px] text-slate-900 uppercase font-bold mb-2 tracking-wide">TERMS & CONDITIONS</p>
-                                <p className="text-[11px] text-slate-700 leading-relaxed">{invoice.termsAndConditions}</p>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Right Side - Summary */}
-                    <div className="w-72 border border-slate-200 rounded-lg overflow-hidden flex-shrink-0">
-                        <div className="bg-slate-50 px-3 py-2 border-b border-slate-200">
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide">Summary</p>
-                        </div>
-                        <div className="p-3 space-y-2 text-xs">
-                            <div className="flex justify-between">
-                                <span className="text-slate-600">Sub Total</span>
-                                <span className="font-semibold text-slate-900">{formatCurrency(invoice.subTotal || invoice.total)}</span>
-                            </div>
-                            {invoice.cgst > 0 && (
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">CGST</span>
-                                    <span className="font-semibold text-slate-900">{formatCurrency(invoice.cgst)}</span>
-                                </div>
-                            )}
-                            {invoice.sgst > 0 && (
-                                <div className="flex justify-between">
-                                    <span className="text-slate-600">SGST</span>
-                                    <span className="font-semibold text-slate-900">{formatCurrency(invoice.sgst)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between py-1 border-t-2 border-slate-300 text-base font-bold">
-                                <span className="text-slate-900">Total</span>
-                                <span className="text-slate-900">{formatCurrency(invoice.total)}</span>
-                            </div>
-                            {invoice.amountPaid > 0 && (
-                                <div className="flex justify-between text-green-600">
-                                    <span className="font-medium">Payment Made</span>
-                                    <span className="font-semibold">(-) {formatCurrency(invoice.amountPaid)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between py-1 border-t-2 border-slate-300 text-base font-bold">
-                                <span className="text-slate-900">Balance Due</span>
-                                <span className="text-slate-900">{formatCurrency(invoice.balanceDue)}</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Signature Section */}
-                {branding?.signature?.url && (
-                    <div className="mt-12 flex justify-end">
-                        <div className="text-center">
-                            <img src={branding.signature.url} alt="Authorized Signature" className="h-16 w-auto mb-2" />
-                            <p className="text-xs font-bold text-slate-700 uppercase tracking-wide border-t border-slate-200 pt-2">Authorized Signature</p>
-                        </div>
-                    </div>
-                )}
+        <div id="invoice-pdf-inner" className="bg-white" style={{
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            color: '#0f172a',
+            padding: '40px',
+            margin: '0',
+            minHeight: '296mm',
+            width: '100%',
+            maxWidth: '210mm',
+            boxSizing: 'border-box',
+            lineHeight: '1.5'
+        }}>
+            {/* Header Section */}
+            <div style={{ marginBottom: '40px' }}>
+                <SalesPDFHeader
+                    logo={branding?.logo || undefined}
+                    documentTitle="INVOICE"
+                    documentNumber={invoice.invoiceNumber}
+                    date={invoice.date}
+                    referenceNumber={invoice.referenceNumber}
+                    organization={organization || undefined}
+                />
             </div>
+
+            {/* Bill To and Details Header */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-10" style={{ display: 'grid', marginBottom: '40px' }}>
+                <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+                    <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+                        BILL TO
+                    </h3>
+                    <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                        {invoice.customerName}
+                    </p>
+                    <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+                        {formatAddress(invoice.billingAddress).map((line, i) => (
+                            <p key={i} style={{ margin: '0' }}>{line}</p>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Meta Information Bar integrated into grid if needed, but let's stick to the horizontal bar below for consistency */}
+                <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+                    <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+                        SHIP TO
+                    </h3>
+                    <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+                        {invoice.customerName}
+                    </p>
+                    <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+                        {formatAddress(invoice.shippingAddress || invoice.billingAddress).map((line, i) => (
+                            <p key={i} style={{ margin: '0' }}>{line}</p>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Meta Information Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-[2px] mb-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-100" style={{
+                marginBottom: '40px',
+                backgroundColor: '#f1f5f9',
+                border: '1px solid #f1f5f9'
+            }}>
+                <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Invoice Date</p>
+                    <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{formatDate(invoice.date)}</p>
+                </div>
+                <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Terms</p>
+                    <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{invoice.paymentTerms || 'Due on Receipt'}</p>
+                </div>
+                <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Due Date</p>
+                    <p style={{ fontSize: '13px', fontWeight: '800', color: '#b91c1c', margin: '0' }}>{formatDate(invoice.dueDate)}</p>
+                </div>
+                <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+                    <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Place of Supply</p>
+                    <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{invoice.placeOfSupply || '-'}</p>
+                </div>
+            </div>
+
+            {/* Items Table */}
+            <div style={{ marginBottom: '32px', overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px' }}>
+                    <thead>
+                        <tr style={{ backgroundColor: '#1e40af', color: '#ffffff' }}>
+                            <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', borderRadius: '4px 0 0 0' }}>#</th>
+                            <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Item & Description</th>
+                            <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Qty</th>
+                            <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Rate</th>
+                            <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderRadius: '0 4px 0 0' }}>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {(invoice.items || []).map((item: any, index: number) => (
+                            <tr key={item.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '16px', fontSize: '13px', color: '#64748b', verticalAlign: 'top' }}>{index + 1}</td>
+                                <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                                    <p style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{item.name}</p>
+                                    {item.description && (
+                                        <p style={{ fontSize: '12px', color: '#64748b', margin: '0', lineHeight: '1.4' }}>{item.description}</p>
+                                    )}
+                                </td>
+                                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'center', verticalAlign: 'top', fontWeight: '600' }}>{item.quantity}</td>
+                                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top' }}>{formatCurrency(item.rate)}</td>
+                                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top', fontWeight: '700' }}>{formatCurrency(item.amount)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Bottom Section: Notes and Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8 md:gap-12 mb-10" style={{ marginBottom: '40px' }}>
+                {/* Notes & Terms */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {invoice.customerNotes && (
+                        <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+                            <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                                Customer Notes
+                            </h4>
+                            <p style={{ fontSize: '13px', color: '#475569', margin: '0', lineHeight: '1.6' }}>{invoice.customerNotes}</p>
+                        </div>
+                    )}
+                    {invoice.termsAndConditions && (
+                        <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+                            <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                                Terms & Conditions
+                            </h4>
+                            <div style={{ fontSize: '12px', color: '#475569', margin: '0', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                                {invoice.termsAndConditions}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Summary Table */}
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', padding: '20px', border: '1px solid #f1f5f9', alignSelf: 'start' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                        <span style={{ color: '#64748b', fontWeight: '600' }}>Sub Total</span>
+                        <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(invoice.subTotal || invoice.total)}</span>
+                    </div>
+                    {invoice.cgst > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#64748b', fontWeight: '600' }}>CGST</span>
+                            <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(invoice.cgst)}</span>
+                        </div>
+                    )}
+                    {invoice.sgst > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+                            <span style={{ color: '#64748b', fontWeight: '600' }}>SGST</span>
+                            <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(invoice.sgst)}</span>
+                        </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>Total</span>
+                        <span style={{ fontSize: '18px', fontWeight: '800', color: '#1e40af' }}>{formatCurrency(invoice.total)}</span>
+                    </div>
+                    {invoice.amountPaid > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '13px', color: '#16a34a' }}>
+                            <span style={{ fontWeight: '600' }}>Payment Made</span>
+                            <span style={{ fontWeight: '700' }}>(-) {formatCurrency(invoice.amountPaid)}</span>
+                        </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
+                        <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>Balance Due</span>
+                        <span style={{ fontSize: '16px', fontWeight: '800', color: '#b91c1c' }}>{formatCurrency(invoice.balanceDue)}</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Signature Section */}
+            {branding?.signature?.url && (
+                <div style={{ marginTop: '64px', display: 'flex', justifyContent: 'flex-end', textAlign: 'center' }}>
+                    <div>
+                        <img
+                            src={branding.signature.url}
+                            alt="Authorized Signature"
+                            style={{ maxHeight: '80px', maxWidth: '200px', objectFit: 'contain', marginBottom: '8px' }}
+                        />
+                        <p style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '1px', margin: '0', borderTop: '1px solid #e2e8f0', paddingTop: '8px' }}>
+                            Authorized Signature
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -383,6 +426,7 @@ export default function Invoices() {
     const [refundMode, setRefundMode] = useState("Cash");
     const [refundReason, setRefundReason] = useState("");
     const [branding, setBranding] = useState<any>(null);
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
     const invoicePdfRef = useRef<HTMLDivElement>(null);
     const { currentOrganization } = useOrganization();
 
@@ -776,24 +820,27 @@ export default function Invoices() {
 
     return (
         <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-            <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="invoices-layout">
+            <ResizablePanelGroup key={selectedInvoice ? "split" : "single"} direction="horizontal" className="h-full w-full">
                 <ResizablePanel
-                    defaultSize={selectedInvoice ? 30 : 100}
-                    minSize={30}
-                    className="flex flex-col overflow-hidden bg-white border-r border-slate-200"
+                    defaultSize={selectedInvoice ? 27 : 100}
+                    minSize={selectedInvoice ? 27 : 100}
+                    maxSize={selectedInvoice ? 27 : 100}
+                    className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
                 >
                     <div className="flex flex-col h-full overflow-hidden">
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+                        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
                             <div className="flex items-center gap-4 flex-1">
                                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button
                                                 variant="ghost"
-                                                className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors"
+                                                className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
                                             >
-                                                {activeFilter === "All" ? "All Invoices" : `${activeFilter} Invoices`}
-                                                <ChevronDown className="h-4 w-4 text-slate-500" />
+                                                <span className="line-clamp-2">
+                                                    {activeFilter === "All" ? "All Invoices" : `${activeFilter} Invoices`}
+                                                </span>
+                                                <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="start" className="w-56">
@@ -828,27 +875,82 @@ export default function Invoices() {
                                     </DropdownMenu>
                                     <span className="text-sm text-slate-400">({invoices.length})</span>
                                 </div>
-
-                                <div className="relative flex-1 max-w-[240px] hidden sm:block">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Search invoices..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-9 h-9"
-                                        data-testid="input-search-invoices"
-                                    />
-                                </div>
                             </div>
+
                             <div className="flex items-center gap-2">
+                                {selectedInvoice ? (
+                                    isSearchVisible ? (
+                                        <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                autoFocus
+                                                placeholder="Search..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                                                className="pl-9 h-9"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-9 w-9"
+                                            onClick={() => setIsSearchVisible(true)}
+                                        >
+                                            <Search className="h-4 w-4 text-slate-400" />
+                                        </Button>
+                                    )
+                                ) : (
+                                    <div className="relative w-[240px] hidden sm:block">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            placeholder="Search invoices..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="pl-9 h-9"
+                                            data-testid="input-search-invoices"
+                                        />
+                                    </div>
+                                )}
+
                                 <Link href="/invoices/new">
-                                    <Button className="bg-red-500 hover:bg-red-600 gap-1.5 h-9" data-testid="button-new-invoice">
-                                        <Plus className="h-4 w-4" /> New
+                                    <Button
+                                        className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedInvoice ? 'w-9 px-0' : ''}`}
+                                        data-testid="button-new-invoice"
+                                        size={selectedInvoice ? "icon" : "default"}
+                                    >
+                                        <Plus className={`h-4 w-4 ${selectedInvoice ? '' : 'mr-1.5'}`} />
+                                        {!selectedInvoice && "New"}
                                     </Button>
                                 </Link>
-                                <Button variant="outline" size="icon" className="h-9 w-9">
-                                    <Menu className="h-4 w-4" />
-                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-9 w-9">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56">
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <ArrowUpDown className="mr-2 h-4 w-4" />
+                                                <span>Sort by</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem>Date</DropdownMenuItem>
+                                                    <DropdownMenuItem>Invoice Number</DropdownMenuItem>
+                                                    <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                                                    <DropdownMenuItem>Amount</DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={fetchInvoices}>
+                                            <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </div>
 
@@ -867,7 +969,7 @@ export default function Invoices() {
                         </div>
 
                         <div className="flex-1 flex flex-col min-h-0 border-t border-slate-200">
-                            <div className="flex-1 overflow-auto">
+                            <div className="flex-1 overflow-auto scrollbar-hide">
 
                                 {loading ? (
                                     <div className="p-8 text-center text-slate-500">Loading invoices...</div>
@@ -925,13 +1027,13 @@ export default function Invoices() {
                                                     <th className="w-12 px-4 py-3">
                                                         <Checkbox />
                                                     </th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Date</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Invoice#</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Customer Name</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Status</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase">Due Date</th>
-                                                    <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">Amount</th>
-                                                    <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase">Balance Due</th>
+                                                    <th className="px-4 py-3 text-left font-semibold">Date</th>
+                                                    <th className="px-4 py-3 text-left font-semibold">Invoice#</th>
+                                                    <th className="px-4 py-3 text-left font-semibold">Customer Name</th>
+                                                    <th className="px-4 py-3 text-left font-semibold">Status</th>
+                                                    <th className="px-4 py-3 text-left font-semibold">Due Date</th>
+                                                    <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                                                    <th className="px-4 py-3 text-right font-semibold">Balance Due</th>
                                                     <th className="w-10 px-4 py-3"></th>
                                                 </tr>
                                             </thead>
@@ -1016,7 +1118,7 @@ export default function Invoices() {
                 {selectedInvoice && (
                     <>
                         <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-                        <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+                        <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
                             <div className="flex flex-col h-full overflow-hidden bg-white border-l border-slate-200">
                                 <div className="flex items-center justify-between p-3 border-b border-slate-200 sticky top-0 bg-white z-10">
                                     <div className="flex items-center gap-4">
@@ -1136,9 +1238,9 @@ export default function Invoices() {
                                 </div>
 
                                 {showPdfPreview ? (
-                                    <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-800 p-8">
-                                        <div className="max-w-4xl mx-auto shadow-lg bg-white dark:bg-white">
-                                            <div id="invoice-pdf-content" ref={invoicePdfRef} className="bg-white" style={{ width: '210mm', minHeight: '297mm', border: '1px solid #cbd5e1' }}>
+                                    <div className="flex-1 overflow-auto scrollbar-hide bg-slate-100 dark:bg-slate-800 p-8 flex justify-center">
+                                        <div className="w-full max-w-[210mm] shadow-lg bg-white dark:bg-white">
+                                            <div id="invoice-pdf-content" ref={invoicePdfRef} className="bg-white w-full" style={{ minHeight: '296mm', border: '1px solid #cbd5e1' }}>
                                                 <InvoicePDFView
                                                     invoice={selectedInvoice}
                                                     branding={branding}
@@ -1148,20 +1250,20 @@ export default function Invoices() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex-1 overflow-auto">
+                                    <div className="flex-1 overflow-auto scrollbar-hide">
                                         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
                                             <div className="px-6 bg-white border-b border-slate-200">
-                                                <TabsList className="h-auto p-0 bg-transparent gap-4">
+                                                <TabsList className="h-auto p-0 bg-transparent gap-6">
                                                     <TabsTrigger
                                                         value="whats-next"
-                                                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent px-0 py-3"
+                                                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
                                                     >
                                                         <HelpCircle className="h-3.5 w-3.5 mr-1.5" />
                                                         What's Next
                                                     </TabsTrigger>
                                                     <TabsTrigger
                                                         value="comments"
-                                                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent px-0 py-3"
+                                                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
                                                     >
                                                         <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
                                                         Comments & History
@@ -1601,7 +1703,7 @@ export default function Invoices() {
                     </>
                 )}
             </ResizablePanelGroup>
-        </div>
+        </div >
     );
 }
 

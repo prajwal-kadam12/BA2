@@ -308,7 +308,7 @@ export default function VendorCreate() {
   };
 
   const updateContactPerson = (id: string, field: string, value: string) => {
-    setContactPersons(prev => prev.map(cp => 
+    setContactPersons(prev => prev.map(cp =>
       cp.id === id ? { ...cp, [field]: value } : cp
     ));
   };
@@ -322,7 +322,7 @@ export default function VendorCreate() {
     if (files) {
       const newFiles = Array.from(files);
       const totalFiles = uploadedFiles.length + newFiles.length;
-      
+
       if (totalFiles > 10) {
         toast({ title: "Maximum 10 files allowed", variant: "destructive" });
         return;
@@ -471,15 +471,15 @@ export default function VendorCreate() {
                   {SALUTATIONS.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Input 
-                placeholder="First Name" 
+              <Input
+                placeholder="First Name"
                 value={formData.firstName}
                 onChange={(e) => handleInputChange('firstName', e.target.value)}
                 className="flex-1"
                 data-testid="input-first-name"
               />
-              <Input 
-                placeholder="Last Name" 
+              <Input
+                placeholder="Last Name"
                 value={formData.lastName}
                 onChange={(e) => handleInputChange('lastName', e.target.value)}
                 className="flex-1"
@@ -488,7 +488,7 @@ export default function VendorCreate() {
             </div>
 
             <Label className="text-sm font-medium text-slate-700 pt-2">Company Name</Label>
-            <Input 
+            <Input
               value={formData.companyName}
               onChange={(e) => handleInputChange('companyName', e.target.value)}
               data-testid="input-company-name"
@@ -522,7 +522,7 @@ export default function VendorCreate() {
               Email Address
               <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
             </Label>
-            <Input 
+            <Input
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
@@ -534,15 +534,15 @@ export default function VendorCreate() {
               <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
             </Label>
             <div className="flex gap-3">
-              <Input 
-                placeholder="Work Phone" 
+              <Input
+                placeholder="Work Phone"
                 value={formData.workPhone}
                 onChange={(e) => handleInputChange('workPhone', e.target.value)}
                 className="flex-1"
                 data-testid="input-work-phone"
               />
-              <Input 
-                placeholder="Mobile" 
+              <Input
+                placeholder="Mobile"
                 value={formData.mobile}
                 onChange={(e) => handleInputChange('mobile', e.target.value)}
                 className="flex-1"
@@ -552,46 +552,46 @@ export default function VendorCreate() {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-6">
-            <TabsList className="h-12 w-full justify-start rounded-none border-b bg-transparent p-0 gap-0">
-              <TabsTrigger 
-                value="other-details" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0 gap-6">
+              <TabsTrigger
+                value="other-details"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Other Details
               </TabsTrigger>
-              <TabsTrigger 
-                value="address" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              <TabsTrigger
+                value="address"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Address
               </TabsTrigger>
-              <TabsTrigger 
-                value="contact-persons" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              <TabsTrigger
+                value="contact-persons"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Contact Persons
               </TabsTrigger>
-              <TabsTrigger 
-                value="bank-details" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              <TabsTrigger
+                value="bank-details"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Bank Details
               </TabsTrigger>
-              <TabsTrigger 
-                value="custom-fields" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              <TabsTrigger
+                value="custom-fields"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Custom Fields
               </TabsTrigger>
-              <TabsTrigger 
-                value="reporting-tags" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              <TabsTrigger
+                value="reporting-tags"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Reporting Tags
               </TabsTrigger>
-              <TabsTrigger 
-                value="remarks" 
-                className="rounded-none border-b-2 border-transparent px-6 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+              <TabsTrigger
+                value="remarks"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
               >
                 Remarks
               </TabsTrigger>
@@ -632,9 +632,8 @@ export default function VendorCreate() {
                               }}
                             >
                               <Check
-                                className={`mr-2 h-4 w-4 ${
-                                  formData.expenseAccount === account ? "opacity-100" : "opacity-0"
-                                }`}
+                                className={`mr-2 h-4 w-4 ${formData.expenseAccount === account ? "opacity-100" : "opacity-0"
+                                  }`}
                               />
                               {account}
                             </CommandItem>
@@ -694,7 +693,7 @@ export default function VendorCreate() {
                   PAN
                   <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
                 </Label>
-                <Input 
+                <Input
                   value={formData.pan}
                   onChange={(e) => handleInputChange('pan', e.target.value.toUpperCase())}
                   maxLength={10}
@@ -706,7 +705,7 @@ export default function VendorCreate() {
                   <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Checkbox 
+                  <Checkbox
                     checked={formData.msmeRegistered}
                     onCheckedChange={(v) => {
                       handleInputChange('msmeRegistered', v);
@@ -727,8 +726,8 @@ export default function VendorCreate() {
                       <span className="text-xs text-red-600">*</span>
                       <HelpCircle className="h-3.5 w-3.5 text-slate-400" />
                     </Label>
-                    <Select 
-                      value={formData.msmeRegistrationType} 
+                    <Select
+                      value={formData.msmeRegistrationType}
                       onValueChange={(v) => handleInputChange('msmeRegistrationType', v)}
                     >
                       <SelectTrigger data-testid="select-msme-type">
@@ -747,7 +746,7 @@ export default function VendorCreate() {
                       <span className="text-xs text-red-600">*</span>
                     </Label>
                     <div>
-                      <Input 
+                      <Input
                         value={formData.msmeRegistrationNumber}
                         onChange={(e) => handleInputChange('msmeRegistrationNumber', e.target.value.toUpperCase())}
                         placeholder="Enter the Registration Number"
@@ -778,7 +777,7 @@ export default function VendorCreate() {
                 <Label className="text-sm font-medium text-slate-700 pt-2">Opening Balance</Label>
                 <div className="flex items-center gap-2">
                   <span className="text-slate-500">INR</span>
-                  <Input 
+                  <Input
                     type="number"
                     value={formData.openingBalance}
                     onChange={(e) => handleInputChange('openingBalance', e.target.value)}
@@ -810,10 +809,10 @@ export default function VendorCreate() {
                       data-testid="select-tds"
                     >
                       {formData.tds
-                        ? TDS_OPTIONS.find((t) => t.value === formData.tds)?.label + 
-                          (TDS_OPTIONS.find((t) => t.value === formData.tds)?.rate 
-                            ? ` - ${TDS_OPTIONS.find((t) => t.value === formData.tds)?.rate}` 
-                            : '')
+                        ? TDS_OPTIONS.find((t) => t.value === formData.tds)?.label +
+                        (TDS_OPTIONS.find((t) => t.value === formData.tds)?.rate
+                          ? ` - ${TDS_OPTIONS.find((t) => t.value === formData.tds)?.rate}`
+                          : '')
                         : "Select a Tax"}
                       <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
@@ -836,9 +835,8 @@ export default function VendorCreate() {
                             >
                               <div className="flex items-center gap-2">
                                 <Check
-                                  className={`h-4 w-4 ${
-                                    formData.tds === tds.value ? "opacity-100" : "opacity-0"
-                                  }`}
+                                  className={`h-4 w-4 ${formData.tds === tds.value ? "opacity-100" : "opacity-0"
+                                    }`}
                                 />
                                 <span>{tds.label}</span>
                               </div>
@@ -856,8 +854,8 @@ export default function VendorCreate() {
                 <Label className="text-sm font-medium text-slate-700 pt-2">Documents</Label>
                 <div>
                   <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="gap-2"
                       onClick={() => fileInputRef.current?.click()}
                       data-testid="button-upload-file"
@@ -879,7 +877,7 @@ export default function VendorCreate() {
                       </Button>
                     )}
                   </div>
-                  <input 
+                  <input
                     ref={fileInputRef}
                     type="file"
                     multiple
@@ -888,7 +886,7 @@ export default function VendorCreate() {
                     accept="*/*"
                   />
                   <p className="text-xs text-slate-500 mt-1">You can upload a maximum of 10 files, 10MB each</p>
-                  
+
                   {uploadedFiles.length > 0 && (
                     <div className="mt-4 space-y-2">
                       <p className="text-sm font-medium text-slate-700">Uploaded Files ({uploadedFiles.length}/10)</p>
@@ -899,8 +897,8 @@ export default function VendorCreate() {
                               <p className="text-sm text-slate-900 truncate">{file.name}</p>
                               <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(2)} KB</p>
                             </div>
-                            <Button 
-                              variant="ghost" 
+                            <Button
+                              variant="ghost"
                               size="icon"
                               className="h-8 w-8 text-slate-400 hover:text-red-600 flex-shrink-0"
                               onClick={() => removeFile(index)}
@@ -929,7 +927,7 @@ export default function VendorCreate() {
                   <div className="space-y-4">
                     <div>
                       <Label className="text-sm text-slate-600">Attention</Label>
-                      <Input 
+                      <Input
                         value={formData.billingAddress.attention}
                         onChange={(e) => handleAddressChange('billingAddress', 'attention', e.target.value)}
                         data-testid="input-billing-attention"
@@ -937,8 +935,8 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Country/Region</Label>
-                      <Select 
-                        value={formData.billingAddress.countryRegion} 
+                      <Select
+                        value={formData.billingAddress.countryRegion}
                         onValueChange={(v) => handleAddressChange('billingAddress', 'countryRegion', v)}
                       >
                         <SelectTrigger data-testid="select-billing-country">
@@ -953,14 +951,14 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Address</Label>
-                      <Textarea 
+                      <Textarea
                         placeholder="Street 1"
                         value={formData.billingAddress.street1}
                         onChange={(e) => handleAddressChange('billingAddress', 'street1', e.target.value)}
                         className="mb-2"
                         data-testid="input-billing-street1"
                       />
-                      <Textarea 
+                      <Textarea
                         placeholder="Street 2"
                         value={formData.billingAddress.street2}
                         onChange={(e) => handleAddressChange('billingAddress', 'street2', e.target.value)}
@@ -969,7 +967,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">City</Label>
-                      <Input 
+                      <Input
                         value={formData.billingAddress.city}
                         onChange={(e) => handleAddressChange('billingAddress', 'city', e.target.value)}
                         data-testid="input-billing-city"
@@ -977,8 +975,8 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">State</Label>
-                      <Select 
-                        value={formData.billingAddress.state} 
+                      <Select
+                        value={formData.billingAddress.state}
                         onValueChange={(v) => handleAddressChange('billingAddress', 'state', v)}
                       >
                         <SelectTrigger data-testid="select-billing-state">
@@ -993,7 +991,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Pin Code</Label>
-                      <Input 
+                      <Input
                         value={formData.billingAddress.pinCode}
                         onChange={(e) => handleAddressChange('billingAddress', 'pinCode', e.target.value)}
                         data-testid="input-billing-pincode"
@@ -1001,7 +999,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Phone</Label>
-                      <Input 
+                      <Input
                         value={formData.billingAddress.phone}
                         onChange={(e) => handleAddressChange('billingAddress', 'phone', e.target.value)}
                         data-testid="input-billing-phone"
@@ -1009,7 +1007,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Fax Number</Label>
-                      <Input 
+                      <Input
                         value={formData.billingAddress.faxNumber}
                         onChange={(e) => handleAddressChange('billingAddress', 'faxNumber', e.target.value)}
                         data-testid="input-billing-fax"
@@ -1021,7 +1019,7 @@ export default function VendorCreate() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="font-semibold text-slate-900">Shipping Address</h3>
-                    <button 
+                    <button
                       type="button"
                       onClick={copyBillingToShipping}
                       className="text-sm text-blue-600 hover:underline"
@@ -1033,7 +1031,7 @@ export default function VendorCreate() {
                   <div className="space-y-4">
                     <div>
                       <Label className="text-sm text-slate-600">Attention</Label>
-                      <Input 
+                      <Input
                         value={formData.shippingAddress.attention}
                         onChange={(e) => handleAddressChange('shippingAddress', 'attention', e.target.value)}
                         data-testid="input-shipping-attention"
@@ -1041,8 +1039,8 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Country/Region</Label>
-                      <Select 
-                        value={formData.shippingAddress.countryRegion} 
+                      <Select
+                        value={formData.shippingAddress.countryRegion}
                         onValueChange={(v) => handleAddressChange('shippingAddress', 'countryRegion', v)}
                       >
                         <SelectTrigger data-testid="select-shipping-country">
@@ -1057,14 +1055,14 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Address</Label>
-                      <Textarea 
+                      <Textarea
                         placeholder="Street 1"
                         value={formData.shippingAddress.street1}
                         onChange={(e) => handleAddressChange('shippingAddress', 'street1', e.target.value)}
                         className="mb-2"
                         data-testid="input-shipping-street1"
                       />
-                      <Textarea 
+                      <Textarea
                         placeholder="Street 2"
                         value={formData.shippingAddress.street2}
                         onChange={(e) => handleAddressChange('shippingAddress', 'street2', e.target.value)}
@@ -1073,7 +1071,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">City</Label>
-                      <Input 
+                      <Input
                         value={formData.shippingAddress.city}
                         onChange={(e) => handleAddressChange('shippingAddress', 'city', e.target.value)}
                         data-testid="input-shipping-city"
@@ -1081,8 +1079,8 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">State</Label>
-                      <Select 
-                        value={formData.shippingAddress.state} 
+                      <Select
+                        value={formData.shippingAddress.state}
                         onValueChange={(v) => handleAddressChange('shippingAddress', 'state', v)}
                       >
                         <SelectTrigger data-testid="select-shipping-state">
@@ -1097,7 +1095,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Pin Code</Label>
-                      <Input 
+                      <Input
                         value={formData.shippingAddress.pinCode}
                         onChange={(e) => handleAddressChange('shippingAddress', 'pinCode', e.target.value)}
                         data-testid="input-shipping-pincode"
@@ -1105,7 +1103,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Phone</Label>
-                      <Input 
+                      <Input
                         value={formData.shippingAddress.phone}
                         onChange={(e) => handleAddressChange('shippingAddress', 'phone', e.target.value)}
                         data-testid="input-shipping-phone"
@@ -1113,7 +1111,7 @@ export default function VendorCreate() {
                     </div>
                     <div>
                       <Label className="text-sm text-slate-600">Fax Number</Label>
-                      <Input 
+                      <Input
                         value={formData.shippingAddress.faxNumber}
                         onChange={(e) => handleAddressChange('shippingAddress', 'faxNumber', e.target.value)}
                         data-testid="input-shipping-fax"
@@ -1152,8 +1150,8 @@ export default function VendorCreate() {
                     {contactPersons.map((cp, index) => (
                       <tr key={cp.id}>
                         <td className="px-4 py-2">
-                          <Select 
-                            value={cp.salutation} 
+                          <Select
+                            value={cp.salutation}
                             onValueChange={(v) => updateContactPerson(cp.id, 'salutation', v)}
                           >
                             <SelectTrigger className="w-24">
@@ -1165,21 +1163,21 @@ export default function VendorCreate() {
                           </Select>
                         </td>
                         <td className="px-4 py-2">
-                          <Input 
+                          <Input
                             value={cp.firstName}
                             onChange={(e) => updateContactPerson(cp.id, 'firstName', e.target.value)}
                             data-testid={`input-contact-firstname-${index}`}
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Input 
+                          <Input
                             value={cp.lastName}
                             onChange={(e) => updateContactPerson(cp.id, 'lastName', e.target.value)}
                             data-testid={`input-contact-lastname-${index}`}
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Input 
+                          <Input
                             type="email"
                             value={cp.email}
                             onChange={(e) => updateContactPerson(cp.id, 'email', e.target.value)}
@@ -1187,23 +1185,23 @@ export default function VendorCreate() {
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Input 
+                          <Input
                             value={cp.workPhone}
                             onChange={(e) => updateContactPerson(cp.id, 'workPhone', e.target.value)}
                             data-testid={`input-contact-workphone-${index}`}
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Input 
+                          <Input
                             value={cp.mobile}
                             onChange={(e) => updateContactPerson(cp.id, 'mobile', e.target.value)}
                             data-testid={`input-contact-mobile-${index}`}
                           />
                         </td>
                         <td className="px-4 py-2">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             className="h-8 w-8 text-slate-400 hover:text-red-600"
                             onClick={() => removeContactPerson(cp.id)}
                           >
@@ -1222,8 +1220,8 @@ export default function VendorCreate() {
                   </tbody>
                 </table>
               </div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="mt-4 gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
                 onClick={addContactPerson}
                 data-testid="button-add-contact"
@@ -1237,7 +1235,7 @@ export default function VendorCreate() {
               <div className="max-w-xl space-y-4">
                 <div>
                   <Label className="text-sm text-slate-600">Account Holder Name</Label>
-                  <Input 
+                  <Input
                     value={formData.bankDetails.accountHolderName}
                     onChange={(e) => handleBankDetailsChange('accountHolderName', e.target.value)}
                     data-testid="input-account-holder"
@@ -1245,7 +1243,7 @@ export default function VendorCreate() {
                 </div>
                 <div>
                   <Label className="text-sm text-slate-600">Bank Name</Label>
-                  <Input 
+                  <Input
                     value={formData.bankDetails.bankName}
                     onChange={(e) => handleBankDetailsChange('bankName', e.target.value)}
                     data-testid="input-bank-name"
@@ -1253,7 +1251,7 @@ export default function VendorCreate() {
                 </div>
                 <div>
                   <Label className="text-sm text-slate-600">Account Number</Label>
-                  <Input 
+                  <Input
                     value={formData.bankDetails.accountNumber}
                     onChange={(e) => handleBankDetailsChange('accountNumber', e.target.value)}
                     data-testid="input-account-number"
@@ -1261,7 +1259,7 @@ export default function VendorCreate() {
                 </div>
                 <div>
                   <Label className="text-sm text-slate-600">IFSC Code</Label>
-                  <Input 
+                  <Input
                     value={formData.bankDetails.ifscCode}
                     onChange={(e) => handleBankDetailsChange('ifscCode', e.target.value.toUpperCase())}
                     data-testid="input-ifsc"
@@ -1269,7 +1267,7 @@ export default function VendorCreate() {
                 </div>
                 <div>
                   <Label className="text-sm text-slate-600">SWIFT Code</Label>
-                  <Input 
+                  <Input
                     value={formData.bankDetails.swiftCode}
                     onChange={(e) => handleBankDetailsChange('swiftCode', e.target.value.toUpperCase())}
                     data-testid="input-swift"
@@ -1277,7 +1275,7 @@ export default function VendorCreate() {
                 </div>
                 <div>
                   <Label className="text-sm text-slate-600">Branch Name</Label>
-                  <Input 
+                  <Input
                     value={formData.bankDetails.branchName}
                     onChange={(e) => handleBankDetailsChange('branchName', e.target.value)}
                     data-testid="input-branch"
@@ -1303,7 +1301,7 @@ export default function VendorCreate() {
             <TabsContent value="remarks" className="mt-6">
               <div className="max-w-xl">
                 <Label className="text-sm text-slate-600 mb-2 block">Remarks (For Internal Use)</Label>
-                <Textarea 
+                <Textarea
                   placeholder="Add any internal notes about this vendor..."
                   value={formData.remarks}
                   onChange={(e) => handleInputChange('remarks', e.target.value)}
@@ -1317,16 +1315,16 @@ export default function VendorCreate() {
       </div>
 
       <div className="border-t border-slate-200 px-6 py-4 flex items-center gap-3">
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={saving}
           className="bg-blue-600 hover:bg-blue-700"
           data-testid="button-save"
         >
           {saving ? 'Saving...' : 'Save'}
         </Button>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           onClick={() => setLocation('/vendors')}
           data-testid="button-cancel"
         >
@@ -1365,16 +1363,16 @@ export default function VendorCreate() {
       </Dialog>
 
       <Dialog open={showAttachmentsDialog} onOpenChange={setShowAttachmentsDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
             <DialogTitle>Manage Documents</DialogTitle>
             <DialogDescription>Upload, view, and manage vendor documents</DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="gap-2 w-full"
                 onClick={() => attachmentInputRef.current?.click()}
                 type="button"
@@ -1382,7 +1380,7 @@ export default function VendorCreate() {
                 <Upload className="h-4 w-4" />
                 Upload your Files
               </Button>
-              <input 
+              <input
                 ref={attachmentInputRef}
                 type="file"
                 multiple
@@ -1398,15 +1396,15 @@ export default function VendorCreate() {
                 <p className="text-sm font-medium text-slate-700 mb-3">
                   Uploaded Files ({(uploadedFiles.length + newAttachments.length)}/10)
                 </p>
-                <div className="space-y-2 max-h-96 overflow-y-auto">
+                <div className="space-y-2 max-h-96 overflow-y-auto scrollbar-hide">
                   {uploadedFiles.map((file, index) => (
                     <div key={`uploaded-${index}`} className="flex items-center justify-between bg-slate-50 p-3 rounded-md border border-slate-200">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-slate-900 truncate">{file.name}</p>
                         <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(2)} KB</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-slate-400 hover:text-red-600 flex-shrink-0"
                         onClick={() => removeFile(index)}
@@ -1422,8 +1420,8 @@ export default function VendorCreate() {
                         <p className="text-sm text-slate-900 truncate">{file.name}</p>
                         <p className="text-xs text-slate-500">{(file.size / 1024).toFixed(2)} KB</p>
                       </div>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-slate-400 hover:text-red-600 flex-shrink-0"
                         onClick={() => removeAttachment(index)}

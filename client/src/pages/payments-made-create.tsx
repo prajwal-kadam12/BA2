@@ -436,13 +436,18 @@ export default function PaymentsMadeCreate() {
 
       <div className="max-w-4xl mx-auto p-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="bill_payment" data-testid="tab-bill-payment">
+          <TabsList className="h-auto p-0 bg-transparent gap-6 mb-6">
+            <TabsTrigger
+              value="bill_payment"
+              data-testid="tab-bill-payment"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
+            >
               Bill Payment
             </TabsTrigger>
             <TabsTrigger
               value="vendor_advance"
               data-testid="tab-vendor-advance"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
             >
               Vendor Advance
             </TabsTrigger>

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { 
-  BarChart3, 
-  PieChart as PieChartIcon, 
-  ArrowUpRight, 
+import {
+  BarChart3,
+  PieChart as PieChartIcon,
+  ArrowUpRight,
   Download,
   TrendingUp,
   TrendingDown,
@@ -139,45 +139,45 @@ export default function Reports() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-0 flex-wrap">
-          <TabsTrigger 
-            value="overview" 
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+        <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-6 flex-wrap">
+          <TabsTrigger
+            value="overview"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-2 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
             data-testid="tab-overview"
           >
             Overview
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="sales"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-2 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
             data-testid="tab-sales"
           >
             Sales
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="expenses"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-2 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
             data-testid="tab-expenses"
           >
             Expenses
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="receivables"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-2 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
             data-testid="tab-receivables"
           >
             Receivables
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="payables"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-2 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
             data-testid="tab-payables"
           >
             Payables
           </TabsTrigger>
-          <TabsTrigger 
+          <TabsTrigger
             value="taxes"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-2 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
             data-testid="tab-taxes"
           >
             Taxes
@@ -264,18 +264,18 @@ export default function Reports() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={reports?.profitAndLoss?.monthlyData || []}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="month" 
+                    <XAxis
+                      dataKey="month"
                       tick={{ fontSize: 11 }}
                       tickFormatter={(value) => value.split(' ')[0]}
                       className="fill-muted-foreground"
                     />
-                    <YAxis 
+                    <YAxis
                       tick={{ fontSize: 11 }}
                       tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                       className="fill-muted-foreground"
                     />
-                    <Tooltip 
+                    <Tooltip
                       formatter={(value: number) => formatCurrency(value)}
                       contentStyle={{ backgroundColor: 'var(--background)', border: '1px solid var(--border)' }}
                     />
@@ -301,8 +301,8 @@ export default function Reports() {
                 <div className="space-y-4">
                   {reports?.salesByCustomer?.slice(0, 5).map((customer, index) => (
                     <div key={customer.customer} className="flex items-center gap-4">
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                      <div
+                        className="w-3 h-3 rounded-full flex-shrink-0"
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       />
                       <div className="flex-1 min-w-0">
@@ -311,9 +311,9 @@ export default function Reports() {
                           <span className="text-sm font-medium">{formatCurrency(customer.totalSales)}</span>
                         </div>
                         <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full" 
-                            style={{ 
+                          <div
+                            className="h-full rounded-full"
+                            style={{
                               width: `${customer.percentage}%`,
                               backgroundColor: COLORS[index % COLORS.length]
                             }}
@@ -358,12 +358,12 @@ export default function Reports() {
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  <div className="flex-1 space-y-2 max-h-44 overflow-y-auto">
+                  <div className="flex-1 space-y-2 max-h-44 overflow-y-auto scrollbar-hide">
                     {reports?.expenseBreakdown?.slice(0, 6).map((expense, index) => (
                       <div key={expense.category} className="flex items-center justify-between text-sm">
                         <div className="flex items-center gap-2">
-                          <div 
-                            className="w-3 h-3 rounded-full flex-shrink-0" 
+                          <div
+                            className="w-3 h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: expense.color || COLORS[index % COLORS.length] }}
                           />
                           <span className="truncate max-w-28">{expense.category}</span>
@@ -433,8 +433,8 @@ export default function Reports() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={reports?.expenseBreakdown || []}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="category" 
+                    <XAxis
+                      dataKey="category"
                       tick={{ fontSize: 10 }}
                       interval={0}
                       angle={-45}
@@ -460,8 +460,8 @@ export default function Reports() {
                 <CardContent className="pt-6">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded" 
+                      <div
+                        className="w-4 h-4 rounded"
                         style={{ backgroundColor: expense.color || COLORS[index % COLORS.length] }}
                       />
                       <div>
@@ -595,8 +595,8 @@ export default function Reports() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={reports?.taxSummary?.monthlyGst || []}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                    <XAxis 
-                      dataKey="month" 
+                    <XAxis
+                      dataKey="month"
                       tick={{ fontSize: 10 }}
                       tickFormatter={(value) => value.split(' ')[0]}
                     />

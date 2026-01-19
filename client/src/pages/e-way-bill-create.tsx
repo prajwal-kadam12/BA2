@@ -538,11 +538,35 @@ export default function EWayBillCreate() {
                                 <div className="space-y-2">
                                     <Label>Mode of Transportation</Label>
                                     <Tabs value={formData.modeOfTransportation} onValueChange={(val) => setFormData(prev => ({ ...prev, modeOfTransportation: val }))}>
-                                        <TabsList className="grid grid-cols-4 w-full">
-                                            <TabsTrigger value="road" title="Road"><Truck className="h-4 w-4" /></TabsTrigger>
-                                            <TabsTrigger value="rail" title="Rail"><Train className="h-4 w-4" /></TabsTrigger>
-                                            <TabsTrigger value="air" title="Air"><Plane className="h-4 w-4" /></TabsTrigger>
-                                            <TabsTrigger value="ship" title="Ship"><Ship className="h-4 w-4" /></TabsTrigger>
+                                        <TabsList className="grid grid-cols-4 w-full bg-transparent p-0 h-auto gap-2">
+                                            <TabsTrigger
+                                                value="road"
+                                                title="Road"
+                                                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
+                                            >
+                                                <Truck className="h-4 w-4" />
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="rail"
+                                                title="Rail"
+                                                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
+                                            >
+                                                <Train className="h-4 w-4" />
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="air"
+                                                title="Air"
+                                                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
+                                            >
+                                                <Plane className="h-4 w-4" />
+                                            </TabsTrigger>
+                                            <TabsTrigger
+                                                value="ship"
+                                                title="Ship"
+                                                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
+                                            >
+                                                <Ship className="h-4 w-4" />
+                                            </TabsTrigger>
                                         </TabsList>
                                     </Tabs>
                                 </div>

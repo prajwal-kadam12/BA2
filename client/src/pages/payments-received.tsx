@@ -4,8 +4,9 @@ import { useOrganization } from "@/context/OrganizationContext";
 import {
   Plus, Search, ChevronDown, MoreHorizontal, Pencil, Trash2,
   X, Send, FileText, Printer, Download, RefreshCw, Eye,
-  Check, Filter
+  Check, Filter, ArrowUpDown, Settings
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { robustIframePrint } from "@/lib/robust-print";
 import { UnifiedPaymentReceipt } from "@/components/UnifiedPaymentReceipt";
 import { usePagination } from "@/hooks/use-pagination";
@@ -38,6 +39,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -259,9 +264,9 @@ function PaymentDetailPanel({
       </div>
 
       {showPdfView ? (
-        <div className="flex-1 overflow-auto bg-slate-100 flex justify-center" style={{ minHeight: 0 }}>
-          <div className="p-8">
-            <div id="payment-pdf-content" className="shadow-lg bg-white" style={{ width: '210mm', minHeight: '297mm' }}>
+        <div className="flex-1 overflow-auto scrollbar-hide bg-slate-100 flex justify-center" style={{ minHeight: 0 }}>
+          <div className="p-8 w-full flex justify-center">
+            <div id="payment-pdf-content" className="shadow-lg bg-white w-full max-w-[210mm]" style={{ minHeight: '296mm' }}>
               <PaymentReceiptView payment={payment} branding={branding} organization={organization} isPreview={true} />
             </div>
           </div>
@@ -385,6 +390,7 @@ export default function PaymentsReceived() {
   const [selectedPayments, setSelectedPayments] = useState<string[]>([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [paymentToDelete, setPaymentToDelete] = useState<string | null>(null);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [branding, setBranding] = useState<any>(null);
 
   useEffect(() => {
@@ -479,37 +485,170 @@ export default function PaymentsReceived() {
   const showCreateForm = false; // Separate page handles this
 
   return (
-    <div className="h-full flex w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="payments-received-layout">
+    <div className="flex h-screen w-full overflow-hidden bg-slate-50">
+      <ResizablePanelGroup key={selectedPayment ? "split" : "single"} direction="horizontal" className="h-full w-full">
         {!showCreateForm && (
-          <ResizablePanel defaultSize={selectedPayment ? 30 : 100} minSize={20} className="bg-white">
+          <ResizablePanel
+            defaultSize={selectedPayment ? 29 : 100}
+            minSize={selectedPayment ? 29 : 100}
+            maxSize={selectedPayment ? 29 : 100}
+            className="bg-white min-w-[25%]"
+          >
             <div className="h-full flex flex-col overflow-hidden bg-white border-r border-slate-200">
-              <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white z-10 flex-none">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 sticky top-0 bg-white z-10 flex-none min-h-[73px] h-auto">
+                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
+                        >
+                          <span className="line-clamp-2">All Payments</span>
+                          <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuItem>All Payments</DropdownMenuItem>
+                        <DropdownMenuItem>Draft</DropdownMenuItem>
+                        <DropdownMenuItem>Open</DropdownMenuItem>
+                        <DropdownMenuItem>Closed</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <span className="text-sm text-slate-400">({payments.length})</span>
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-2">
+                  {selectedPayment ? (
+                    isSearchVisible ? (
+                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          autoFocus
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 px-0"
+                        data-testid="button-search-compact"
+                        onClick={() => setIsSearchVisible(true)}
+                      >
+                        <Search className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    )
+                  ) : (
+                    <div className="relative w-[240px] hidden sm:block">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        placeholder="Search payments..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-9 h-9"
+                        data-testid="input-search-payments"
+                      />
+                    </div>
+                  )}
+                  <Button
+                    onClick={() => setLocation('/payments-received/create')}
+                    className={cn(
+                      "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 font-semibold",
+                      selectedPayment && "w-9 px-0"
+                    )}
+                    size={selectedPayment ? "icon" : "default"}
+                    data-testid="button-record-payment"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {!selectedPayment && <span>New</span>}
+                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="text-xl font-bold p-0 hover:bg-transparent">
-                        All Payments <ChevronDown className="ml-1 h-4 w-4" />
+                      <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem>All Payments</DropdownMenuItem>
+                    <DropdownMenuContent align="end" className="w-56 p-1">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          <span>Sort by</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem>Date</DropdownMenuItem>
+                            <DropdownMenuItem>Payment Number</DropdownMenuItem>
+                            <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                            <DropdownMenuItem>Amount</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem data-testid="menu-import">
+                        <Download className="mr-2 h-4 w-4" /> Import Payments
+                      </DropdownMenuItem>
+                      <DropdownMenuItem data-testid="menu-export">
+                        <Download className="mr-2 h-4 w-4" /> Export Payments
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem data-testid="menu-preferences">
+                        <Settings className="mr-2 h-4 w-4" /> Preferences
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={fetchPayments}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Button onClick={() => setLocation('/payments-received/create')} className="bg-blue-600 hover:bg-blue-700">
-                    <Plus className="h-4 w-4 mr-2" /> New
-                  </Button>
-                </div>
               </div>
 
-              <div className="flex-1 overflow-auto min-h-0">
+              <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
                 {isLoading ? (
                   <div className="flex items-center justify-center h-64">Loading...</div>
                 ) : filteredPayments.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-64 text-slate-500">
                     <p>No payments found</p>
+                  </div>
+                ) : selectedPayment ? (
+                  <div className="divide-y divide-slate-100">
+                    {paginatedItems.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className={cn(
+                          "p-4 cursor-pointer hover:bg-slate-50 transition-colors",
+                          selectedPayment.id === payment.id && "bg-blue-50 border-l-2 border-l-blue-600"
+                        )}
+                        onClick={() => handlePaymentClick(payment)}
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <div className={cn(
+                            "font-medium truncate",
+                            selectedPayment.id === payment.id ? "text-blue-600" : "text-slate-900"
+                          )}>
+                            {payment.customerName}
+                          </div>
+                          <span className="text-xs text-slate-500 whitespace-nowrap ml-2">{formatDate(payment.date)}</span>
+                        </div>
+                        <div className="flex justify-between items-center mb-1">
+                          <div className="text-xs text-slate-500">{payment.paymentNumber}</div>
+                          <div className="font-semibold text-sm">{formatCurrency(payment.amount)}</div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs text-slate-400 capitalize">{payment.paymentMode}</span>
+                          {payment.unusedAmount > 0 && (
+                            <span className="text-xs text-orange-600">
+                              Unused: {formatCurrency(payment.unusedAmount)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 ) : (
                   <div className="w-full">
@@ -525,15 +664,15 @@ export default function PaymentsReceived() {
                               }}
                             />
                           </TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">DATE</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">PAYMENT #</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">REFERENCE NUMBER</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">CUSTOMER NAME</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">INVOICE#</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">MODE</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider text-right py-3">AMOUNT</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider text-right py-3">UNUSED AMOUNT</TableHead>
-                          <TableHead className="text-xs font-medium text-slate-500 uppercase tracking-wider py-3">STATUS</TableHead>
+                          <TableHead className="font-semibold py-3 text-slate-800">DATE</TableHead>
+                          <TableHead className="font-semibold py-3 text-slate-800">PAYMENT #</TableHead>
+                          <TableHead className="font-semibold text-xs text-slate-500 uppercase tracking-wider py-3">REFERENCE NUMBER</TableHead>
+                          <TableHead className="font-semibold py-3 text-slate-800">CUSTOMER NAME</TableHead>
+                          <TableHead className="font-semibold py-3 text-slate-800">INVOICE#</TableHead>
+                          <TableHead className="font-semibold py-3 text-slate-800">MODE</TableHead>
+                          <TableHead className="font-semibold text-right py-3 text-slate-800">AMOUNT</TableHead>
+                          <TableHead className="font-semibold text-right py-3 text-slate-800">UNUSED AMOUNT</TableHead>
+                          <TableHead className="font-semibold py-3 text-slate-800">STATUS</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -593,7 +732,7 @@ export default function PaymentsReceived() {
         {!showCreateForm && selectedPayment && (
           <>
             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+            <ResizablePanel defaultSize={65} minSize={25} className="bg-white">
               <div className="h-full flex flex-col overflow-hidden bg-white border-l border-slate-200">
                 <PaymentDetailPanel
                   payment={selectedPayment}
@@ -626,7 +765,7 @@ export default function PaymentsReceived() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </div >
   );
 }
 

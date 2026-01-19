@@ -285,16 +285,25 @@ export default function ItemsPage() {
 
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden">
-      <ResizablePanelGroup direction="horizontal" className="flex-1 w-full">
-        <ResizablePanel defaultSize={selectedItem ? 30 : 100} minSize={25}>
+      <ResizablePanelGroup
+        key={selectedItem ? "split" : "single"}
+        direction="horizontal"
+        className="flex-1 w-full"
+      >
+        <ResizablePanel
+          defaultSize={selectedItem ? 33 : 100}
+          minSize={selectedItem ? 25 : 100}
+          maxSize={selectedItem ? 75 : 100}
+          className="min-w-[25%]"
+        >
           <div className="flex flex-col h-full overflow-hidden w-full">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 text-xl font-semibold text-slate-900 hover:text-slate-700 transition-colors">
-                      {activeFilter} Items
-                      <ChevronDown className="h-4 w-4 text-slate-500" />
+                    <button className="flex items-center gap-2 text-xl font-semibold text-slate-900 hover:text-slate-700 transition-colors text-left whitespace-normal">
+                      <span className="line-clamp-2">{activeFilter} Items</span>
+                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-48">
@@ -396,7 +405,7 @@ export default function ItemsPage() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto scrollbar-hide">
               {loading ? (
                 <div className="p-8 text-center text-slate-500">Loading items...</div>
               ) : items.length === 0 ? (
@@ -520,7 +529,7 @@ export default function ItemsPage() {
         {selectedItem && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={70} minSize={30}>
+            <ResizablePanel defaultSize={65} minSize={30}>
               <div className="h-full overflow-hidden">
                 <ItemDetailPanel
                   item={selectedItem}

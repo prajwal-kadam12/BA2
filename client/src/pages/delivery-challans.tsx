@@ -13,6 +13,19 @@ import {
     ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuPortal,
+    DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import {
+    RefreshCw,
+    ArrowUpDown,
     Plus,
     Download,
     Send,
@@ -30,17 +43,9 @@ import {
     Filter,
     ChevronDown,
     FileText,
-    ArrowRight
+    ArrowRight,
+    Settings
 } from "lucide-react";
-import { robustIframePrint } from "@/lib/robust-print";
-import { UnifiedDeliveryChallan } from "@/components/UnifiedDeliveryChallan";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -53,7 +58,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { UnifiedDeliveryChallan } from "@/components/UnifiedDeliveryChallan";
 import { Checkbox } from "@/components/ui/checkbox";
+import { robustIframePrint } from "@/lib/robust-print";
+import { cn } from "@/lib/utils";
 
 interface ChallanListItem {
     id: string;
@@ -199,6 +207,7 @@ export default function DeliveryChallans() {
     const [challanToDelete, setChallanToDelete] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState("whats-next");
     const [branding, setBranding] = useState<any>(null);
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
 
     useEffect(() => {
         fetchChallans();
@@ -468,7 +477,7 @@ export default function DeliveryChallans() {
     };
 
     return (
-        <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
+        <div className="flex h-screen animate-in fade-in duration-340 w-full overflow-hidden bg-slate-50">
             {selectedChallan && (
                 <div
                     id="challan-pdf-content"
@@ -488,78 +497,136 @@ export default function DeliveryChallans() {
                 </div>
             )}
 
-            <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="delivery-challans-layout">
+            <ResizablePanelGroup key={selectedChallan ? "split" : "single"} direction="horizontal" className="h-full w-full">
                 <ResizablePanel
-                    defaultSize={selectedChallan ? 40 : 100}
-                    minSize={40}
-                    className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[40%]"
+                    defaultSize={selectedChallan ? 33 : 100}
+                    minSize={selectedChallan ? 33 : 100}
+                    maxSize={selectedChallan ? 33 : 100}
+                    className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
                 >
                     <div className="flex flex-col h-full overflow-hidden">
-                        <div className="flex items-center justify-between gap-4 p-4 border-b border-border/60 bg-white sticky top-0 z-10 min-h-[64px]">
-                            <div className="flex items-center gap-2">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" className="text-lg font-semibold gap-1" data-testid="dropdown-challan-filter">
-                                            All Delivery Challans
-                                            <ChevronDown className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="start">
-                                        <DropdownMenuItem data-testid="filter-all">All Delivery Challans</DropdownMenuItem>
-                                        <DropdownMenuItem data-testid="filter-draft">Draft</DropdownMenuItem>
-                                        <DropdownMenuItem data-testid="filter-open">Open</DropdownMenuItem>
-                                        <DropdownMenuItem data-testid="filter-delivered">Delivered</DropdownMenuItem>
-                                        <DropdownMenuItem data-testid="filter-invoiced">Invoiced</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                        <div className="flex items-center justify-between p-4 border-b border-border/60 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                            <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
+                                                <span className="line-clamp-2">All Delivery Challans</span>
+                                                <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start" className="w-56">
+                                            <DropdownMenuItem data-testid="filter-all">All Delivery Challans</DropdownMenuItem>
+                                            <DropdownMenuItem data-testid="filter-draft">Draft</DropdownMenuItem>
+                                            <DropdownMenuItem data-testid="filter-open">Open</DropdownMenuItem>
+                                            <DropdownMenuItem data-testid="filter-delivered">Delivered</DropdownMenuItem>
+                                            <DropdownMenuItem data-testid="filter-invoiced">Invoiced</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <span className="text-sm text-slate-400">({challans.length})</span>
+                                </div>
                             </div>
 
                             <div className="flex items-center gap-2">
+                                {selectedChallan ? (
+                                    isSearchVisible ? (
+                                        <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                autoFocus
+                                                placeholder="Search..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                                                className="pl-9 h-9"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-9 w-9 px-0"
+                                            data-testid="button-search-compact"
+                                            onClick={() => setIsSearchVisible(true)}
+                                        >
+                                            <Search className="h-4 w-4 text-slate-500" />
+                                        </Button>
+                                    )
+                                ) : (
+                                    <div className="relative w-[240px] hidden sm:block">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            placeholder="Search challans..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="pl-9 h-9"
+                                            data-testid="input-search-challans"
+                                        />
+                                    </div>
+                                )}
+
+
                                 <Link href="/delivery-challans/new">
-                                    <Button className="bg-blue-600 hover:bg-blue-700 h-8 gap-1.5 text-xs font-semibold px-3" data-testid="button-new-challan">
-                                        <Plus className="h-3.5 w-3.5" />
-                                        + New
+                                    <Button
+                                        className={cn(
+                                            "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9",
+                                            selectedChallan && "w-9 px-0"
+                                        )}
+                                        size={selectedChallan ? "icon" : "default"}
+                                        data-testid="button-new-challan"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        {!selectedChallan && <span>+ New</span>}
                                     </Button>
                                 </Link>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon" data-testid="button-more-options">
+                                        <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
                                             <MoreHorizontal className="h-4 w-4" />
                                         </Button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuItem data-testid="menu-import">Import Challans</DropdownMenuItem>
-                                        <DropdownMenuItem data-testid="menu-export">Export Challans</DropdownMenuItem>
+                                    <DropdownMenuContent align="end" className="w-56 p-1">
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <ArrowUpDown className="mr-2 h-4 w-4" />
+                                                <span>Sort by</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem>Date</DropdownMenuItem>
+                                                    <DropdownMenuItem>Challan Number</DropdownMenuItem>
+                                                    <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                                                    <DropdownMenuItem>Amount</DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem data-testid="menu-preferences">Preferences</DropdownMenuItem>
+                                        <DropdownMenuItem data-testid="menu-import">
+                                            <Download className="mr-2 h-4 w-4" /> Import Challans
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem data-testid="menu-export">
+                                            <Download className="mr-2 h-4 w-4" /> Export Challans
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem data-testid="menu-preferences">
+                                            <Settings className="mr-2 h-4 w-4" /> Preferences
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={fetchChallans}>
+                                            <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                                        </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 px-4 py-2 border-b border-border/40">
-                            <div className="relative flex-1 max-w-sm">
-                                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Search challans..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="pl-8 h-9"
-                                    data-testid="input-search-challans"
-                                />
-                            </div>
-                            <Button variant="outline" size="sm" className="gap-1" data-testid="button-filter">
-                                <Filter className="h-4 w-4" />
-                                Filters
-                            </Button>
-                        </div>
+
 
                         <div className="flex-1 flex flex-col min-h-0 bg-white">
-                            <div className="flex-1 overflow-auto min-h-0">
+                            <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
                                 {!selectedChallan ? (
                                     <table className="w-full">
                                         <thead className="bg-slate-50/50 sticky top-0 z-10">
-                                            <tr className="text-left text-[10px] font-bold uppercase text-slate-500 tracking-wider border-b">
+                                            <tr className="border-b bg-slate-50/50">
                                                 <th className="p-4 w-10">
                                                     <Checkbox
                                                         checked={selectedChallans.length === filteredChallans.length && filteredChallans.length > 0}
@@ -567,12 +634,12 @@ export default function DeliveryChallans() {
                                                         data-testid="checkbox-select-all"
                                                     />
                                                 </th>
-                                                <th className="p-4">Date</th>
-                                                <th className="p-4">Delivery Challan#</th>
-                                                <th className="p-4">Reference Number</th>
-                                                <th className="p-4">Customer Name</th>
-                                                <th className="p-4">Status</th>
-                                                <th className="p-4 text-right">Amount</th>
+                                                <th className="p-4 text-left font-semibold">Date</th>
+                                                <th className="p-4 text-left font-semibold">Delivery Challan#</th>
+                                                <th className="p-4 text-left font-semibold text-xs text-slate-500 uppercase">Reference Number</th>
+                                                <th className="p-4 text-left font-semibold">Customer Name</th>
+                                                <th className="p-4 text-left font-semibold">Status</th>
+                                                <th className="p-4 text-right font-semibold">Amount</th>
                                                 <th className="p-4 w-10"></th>
                                             </tr>
                                         </thead>
@@ -716,7 +783,7 @@ export default function DeliveryChallans() {
                 {selectedChallan && (
                     <>
                         <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-                        <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+                        <ResizablePanel defaultSize={65} minSize={34} className="bg-white">
                             <div className="w-full border-l border-border/60 flex flex-col bg-background h-full">
                                 <div className="flex items-center justify-between gap-2 p-3 border-b border-border/60">
                                     <h2 className="font-semibold text-lg" data-testid="text-selected-challan-number">
@@ -841,17 +908,29 @@ export default function DeliveryChallans() {
                                 </div>
 
                                 <ScrollArea className="flex-1">
-                                    <div className="flex-1 overflow-auto bg-slate-50/50 p-8 flex justify-center">
-                                        <div className="shadow-2xl mb-8">
+                                    <div className="flex-1 overflow-auto scrollbar-hide bg-slate-50/50 p-8 flex justify-center">
+                                        <div className="shadow-2xl mb-8 w-full max-w-[210mm]">
                                             <UnifiedDeliveryChallan challan={selectedChallan} branding={branding} organization={currentOrganization || undefined} isPreview={true} />
                                         </div>
                                     </div>
 
                                     <div className="px-6 pb-6">
                                         <Tabs value={activeTab} onValueChange={setActiveTab}>
-                                            <TabsList className="w-full justify-start">
-                                                <TabsTrigger value="whats-next" data-testid="tab-whats-next">What's Next</TabsTrigger>
-                                                <TabsTrigger value="activity" data-testid="tab-activity">Activity</TabsTrigger>
+                                            <TabsList className="w-full justify-start h-auto p-0 bg-transparent gap-6">
+                                                <TabsTrigger
+                                                    value="whats-next"
+                                                    data-testid="tab-whats-next"
+                                                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
+                                                >
+                                                    What's Next
+                                                </TabsTrigger>
+                                                <TabsTrigger
+                                                    value="activity"
+                                                    data-testid="tab-activity"
+                                                    className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
+                                                >
+                                                    Activity
+                                                </TabsTrigger>
                                             </TabsList>
                                             <TabsContent value="whats-next" className="mt-4">
                                                 <div className="space-y-3">

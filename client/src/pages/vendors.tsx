@@ -1,7 +1,9 @@
 
 import { useState, useEffect, useMemo } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocation } from "wouter";
 import { useOrganization } from "@/context/OrganizationContext";
+import { cn } from "@/lib/utils";
 import {
     Plus,
     Search,
@@ -77,6 +79,7 @@ import { TablePagination } from "@/components/table-pagination";
 import { usePagination } from "@/hooks/use-pagination";
 // removed import { formatCurrency } from "@/lib/utils";
 import { robustIframePrint } from "@/lib/robust-print";
+import { generatePDFFromElement } from "@/lib/pdf-utils";
 
 interface Vendor {
     id: string;
@@ -256,6 +259,17 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
         robustIframePrint("vendor-statement");
     };
 
+    const handleDownloadPDF = async () => {
+        toast({ title: "Preparing download...", description: "Please wait while we generate your PDF." });
+        try {
+            await generatePDFFromElement("vendor-statement", `Statement-${vendor.name}.pdf`);
+            toast({ title: "Success", description: "Statement downloaded successfully." });
+        } catch (error) {
+            console.error("PDF generation error:", error);
+            toast({ title: "Error", description: "Failed to generate PDF. Please try again.", variant: "destructive" });
+        }
+    };
+
     const toggleSection = (section: string) => {
         setExpandedSections((prev: Record<string, boolean>) => ({ ...prev, [section]: !prev[section] }));
     };
@@ -338,7 +352,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex items-center px-6 border-b border-slate-200 dark:border-slate-700">
-                    <TabsList className="h-auto p-0 bg-transparent gap-2">
+                    <TabsList className="h-auto p-0 bg-transparent gap-6">
                         {[
                             { value: "overview", label: "Overview", icon: Building2 },
                             { value: "comments", label: "Comments", icon: MessageSquare },
@@ -349,7 +363,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                             <TabsTrigger
                                 key={tab.value}
                                 value={tab.value}
-                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent px-4 py-3 gap-2"
+                                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none gap-2"
                             >
                                 <tab.icon className="h-4 w-4" />
                                 {tab.label}
@@ -358,7 +372,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                     </TabsList>
                 </div>
 
-                <TabsContent value="overview" className="flex-1 overflow-auto p-6 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <TabsContent value="overview" className="flex-1 overflow-auto scrollbar-hide p-6 space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Basic Info Card */}
                         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
@@ -497,7 +511,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                 </TabsContent>
 
                 <TabsContent value="comments" className="flex-1 overflow-hidden flex flex-col p-0">
-                    <div className="flex-1 overflow-auto p-6">
+                    <div className="flex-1 overflow-auto scrollbar-hide p-6">
                         <div className="max-w-3xl mx-auto space-y-6">
                             {comments.length === 0 ? (
                                 <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800">
@@ -552,94 +566,154 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                     </div>
                 </TabsContent>
 
-                <TabsContent value="transactions" className="flex-1 overflow-auto p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <TabsContent value="transactions" className="flex-1 overflow-auto scrollbar-hide p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300" data-vendor-transactions-scroll-container>
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20 animate-pulse">
                             <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
                             <p className="text-slate-500 font-medium">Fetching transaction history...</p>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            {[
-                                { id: 'bills', label: 'Bills', icon: Receipt, count: transactions.bills.length, items: transactions.bills },
-                                { id: 'billPayments', label: 'Payments Made', icon: CreditCard, count: transactions.billPayments.length, items: transactions.billPayments },
-                                { id: 'expenses', label: 'Expenses', icon: BadgeIndianRupee, count: transactions.expenses.length, items: transactions.expenses },
-                                { id: 'purchaseOrders', label: 'Purchase Orders', icon: Briefcase, count: transactions.purchaseOrders.length, items: transactions.purchaseOrders },
-                                { id: 'vendorCredits', label: 'Vendor Credits', icon: Notebook, count: transactions.vendorCredits.length, items: transactions.vendorCredits }
-                            ].map((section) => (
-                                <Collapsible
-                                    key={section.id}
-                                    open={expandedSections[section.id]}
-                                    onOpenChange={() => toggleSection(section.id)}
-                                    className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden"
-                                >
-                                    <CollapsibleTrigger asChild>
-                                        <div className="w-full px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`p-2 rounded-lg ${section.count > 0 ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600' : 'bg-slate-50 dark:bg-slate-700 text-slate-400'}`}>
-                                                    <section.icon className="h-4 w-4" />
+                        <>
+                            {/* Go to transactions dropdown */}
+                            <div className="flex items-center justify-between mb-4">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="sm" className="gap-1.5">
+                                            Go to transactions
+                                            <ChevronDown className="h-3 w-3" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start" className="w-48">
+                                        {[
+                                            { id: 'bills', label: 'Bills' },
+                                            { id: 'billPayments', label: 'Payments Made' },
+                                            { id: 'expenses', label: 'Expenses' },
+                                            { id: 'purchaseOrders', label: 'Purchase Orders' },
+                                            { id: 'vendorCredits', label: 'Vendor Credits' }
+                                        ].map((section) => (
+                                            <DropdownMenuItem
+                                                key={section.id}
+                                                onClick={() => {
+                                                    // First expand the section
+                                                    setExpandedSections((prev: Record<string, boolean>) => ({ ...prev, [section.id]: true }));
+                                                    // Use timeout to allow section to expand fully
+                                                    setTimeout(() => {
+                                                        const element = document.getElementById(`vendor-section-${section.id}`);
+                                                        const scrollContainer = document.querySelector('[data-vendor-transactions-scroll-container]');
+                                                        if (element && scrollContainer) {
+                                                            // Get the parent container's padding/offset (the div with p-6 = 24px)
+                                                            const containerPadding = 24;
+                                                            // Calculate scroll position - element's position relative to container
+                                                            const elementTop = element.offsetTop;
+
+                                                            scrollContainer.scrollTo({
+                                                                top: elementTop - containerPadding - 60, // 60px offset for the dropdown header
+                                                                behavior: 'smooth'
+                                                            });
+                                                        } else if (element) {
+                                                            element.scrollIntoView({
+                                                                behavior: 'smooth',
+                                                                block: 'start'
+                                                            });
+                                                        }
+                                                    }, 300);
+                                                }}
+                                            >
+                                                {section.label}
+                                            </DropdownMenuItem>
+                                        ))}
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                            </div>
+                            <div className="space-y-4">
+                                {[
+                                    { id: 'bills', label: 'Bills', icon: Receipt, count: transactions.bills.length, items: transactions.bills },
+                                    { id: 'billPayments', label: 'Payments Made', icon: CreditCard, count: transactions.billPayments.length, items: transactions.billPayments },
+                                    { id: 'expenses', label: 'Expenses', icon: BadgeIndianRupee, count: transactions.expenses.length, items: transactions.expenses },
+                                    { id: 'purchaseOrders', label: 'Purchase Orders', icon: Briefcase, count: transactions.purchaseOrders.length, items: transactions.purchaseOrders },
+                                    { id: 'vendorCredits', label: 'Vendor Credits', icon: Notebook, count: transactions.vendorCredits.length, items: transactions.vendorCredits }
+                                ].map((section) => (
+                                    <Collapsible
+                                        key={section.id}
+                                        open={expandedSections[section.id]}
+                                        onOpenChange={() => toggleSection(section.id)}
+                                    >
+                                        <div id={`vendor-section-${section.id}`} className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                                            <CollapsibleTrigger asChild>
+                                                <div className="w-full px-5 py-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`p-2 rounded-lg ${section.count > 0 ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-600' : 'bg-slate-50 dark:bg-slate-700 text-slate-400'}`}>
+                                                            <section.icon className="h-4 w-4" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-sm font-semibold text-slate-900 dark:text-white capitalize">{section.label}</h4>
+                                                            <p className="text-xs text-slate-500">{section.count} {section.count === 1 ? 'record' : 'records'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        {section.count > 0 && <Badge variant="outline" className="bg-blue-50/50 text-blue-600 border-blue-100 hidden sm:inline-flex">View All</Badge>}
+                                                        <div className={`p-1 rounded-md bg-slate-100 dark:bg-slate-700 transition-transform duration-200 ${expandedSections[section.id] ? 'rotate-180' : ''}`}>
+                                                            <ChevronDown className="h-4 w-4 text-slate-500" />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h4 className="text-sm font-semibold text-slate-900 dark:text-white capitalize">{section.label}</h4>
-                                                    <p className="text-xs text-slate-500">{section.count} {section.count === 1 ? 'record' : 'records'}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                {section.count > 0 && <Badge variant="outline" className="bg-blue-50/50 text-blue-600 border-blue-100 hidden sm:inline-flex">View All</Badge>}
-                                                <div className={`p-1 rounded-md bg-slate-100 dark:bg-slate-700 transition-transform duration-200 ${expandedSections[section.id] ? 'rotate-180' : ''}`}>
-                                                    <ChevronDown className="h-4 w-4 text-slate-500" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <div className="border-t border-slate-100 dark:border-slate-700 overflow-x-auto">
-                                            {section.items.length === 0 ? (
-                                                <div className="px-5 py-8 text-center bg-slate-50/30 dark:bg-slate-900/10">
-                                                    <p className="text-sm text-slate-400">No {section.label.toLowerCase()} found for this period.</p>
-                                                </div>
-                                            ) : (
-                                                <table className="w-full text-sm">
-                                                    <thead>
-                                                        <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
-                                                            <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
-                                                            <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Number</th>
-                                                            <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
-                                                            <th className="px-5 py-2.5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
-                                                            <th className="px-5 py-2.5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Balance</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
-                                                        {section.items.map((item) => (
-                                                            <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors group" onClick={() => setLocation(`/${section.id === 'billPayments' ? 'payments-made' : section.id === 'vendorCredits' ? 'vendor-credits' : section.id}/${item.id}`)}>
-                                                                <td className="px-5 py-3 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{formatDate(item.date)}</td>
-                                                                <td className="px-5 py-3 text-blue-600 font-semibold group-hover:underline decoration-blue-300 underline-offset-4">{item.number}</td>
-                                                                <td className="px-5 py-3">
-                                                                    <Badge variant="outline" className={`
+                                            </CollapsibleTrigger>
+                                            <CollapsibleContent>
+                                                <div className="border-t border-slate-100 dark:border-slate-700 overflow-x-auto">
+                                                    {section.items.length === 0 ? (
+                                                        <div className="px-5 py-8 text-center bg-slate-50/30 dark:bg-slate-900/10">
+                                                            <p className="text-sm text-slate-400">No {section.label.toLowerCase()} found for this period.</p>
+                                                        </div>
+                                                    ) : (
+                                                        <table className="w-full text-sm">
+                                                            <thead>
+                                                                <tr className="bg-slate-50/50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700">
+                                                                    <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Date</th>
+                                                                    <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Number</th>
+                                                                    <th className="px-5 py-2.5 text-left text-[11px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
+                                                                    <th className="px-5 py-2.5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Amount</th>
+                                                                    <th className="px-5 py-2.5 text-right text-[11px] font-bold text-slate-400 uppercase tracking-wider">Balance</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                                                                {section.items.map((item) => (
+                                                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 cursor-pointer transition-colors group" onClick={() => {
+                                                                        const basePath = section.id === 'billPayments' ? 'payments-made' :
+                                                                            section.id === 'vendorCredits' ? 'vendor-credits' :
+                                                                                section.id === 'purchaseOrders' ? 'purchase-orders' :
+                                                                                    section.id;
+                                                                        setLocation(`/${basePath}?id=${item.id}`);
+                                                                    }}>
+                                                                        <td className="px-5 py-3 text-slate-600 dark:text-slate-400 font-medium whitespace-nowrap">{formatDate(item.date)}</td>
+                                                                        <td className="px-5 py-3 text-blue-600 font-semibold group-hover:underline decoration-blue-300 underline-offset-4">{item.number}</td>
+                                                                        <td className="px-5 py-3">
+                                                                            <Badge variant="outline" className={`
                                                                         ${item.status === 'Paid' || item.status === 'Sent' || item.status === 'Closed' ? 'bg-green-50 text-green-600 border-green-200' : ''}
                                                                         ${item.status === 'Partially Paid' ? 'bg-yellow-50 text-yellow-600 border-yellow-200' : ''}
                                                                         ${item.status === 'Open' || item.status === 'Draft' ? 'bg-blue-50 text-blue-600 border-blue-200' : ''}
                                                                         ${item.status === 'Overdue' ? 'bg-red-50 text-red-600 border-red-200' : ''}
                                                                     `}>
-                                                                        {item.status}
-                                                                    </Badge>
-                                                                </td>
-                                                                <td className="px-5 py-3 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">{formatCurrency(item.amount)}</td>
-                                                                <td className="px-5 py-3 text-right font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{formatCurrency(item.balance)}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
-                                            )}
+                                                                                {item.status}
+                                                                            </Badge>
+                                                                        </td>
+                                                                        <td className="px-5 py-3 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">{formatCurrency(item.amount)}</td>
+                                                                        <td className="px-5 py-3 text-right font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">{formatCurrency(item.balance)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    )}
+                                                </div>
+                                            </CollapsibleContent>
                                         </div>
-                                    </CollapsibleContent>
-                                </Collapsible>
-                            ))}
-                        </div>
+                                    </Collapsible>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </TabsContent>
 
-                <TabsContent value="mails" className="flex-1 overflow-auto p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <TabsContent value="mails" className="flex-1 overflow-auto scrollbar-hide p-6 space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="max-w-4xl mx-auto">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
@@ -720,7 +794,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                             <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint}>
                                 <Printer className="h-4 w-4" /> Print
                             </Button>
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2" onClick={handleDownloadPDF}>
                                 <Download className="h-4 w-4" /> PDF
                             </Button>
                             <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2" size="sm">
@@ -729,19 +803,22 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-900/90 p-8 flex justify-center">
-                        <div id="vendor-statement" className="w-full max-w-[800px] bg-white dark:bg-white text-black p-12 shadow-2xl rounded-sm min-h-[1000px] flex flex-col">
-                            <div className="flex justify-between items-start mb-12 border-b-2 border-slate-100 pb-10">
+                    <div className="flex-1 overflow-auto scrollbar-hide bg-slate-100 dark:bg-slate-900/90 p-4 md:p-8 flex justify-center">
+                        <div
+                            id="vendor-statement"
+                            className="bg-white dark:bg-white text-slate-900 shadow-xl px-8 md:px-10 py-10 w-full max-w-[210mm] min-h-[296mm] h-fit flex flex-col"
+                            style={{ color: '#000000' }}
+                        >
+                            <div className="flex justify-between items-start mb-12 border-b border-slate-200 pb-10">
                                 <div>
-                                    <h1 className="text-3xl font-bold text-slate-900 mb-2 uppercase tracking-tight">Statement</h1>
-                                    <p className="text-slate-500 font-medium">For the period: 01 Jan 2026 - 31 Jan 2026</p>
+                                    <h1 className="text-4xl font-light text-slate-400 uppercase tracking-widest mb-2">Statement</h1>
+                                    <div className="space-y-1 text-sm text-slate-600">
+                                        <p><span className="text-slate-400 uppercase font-medium">Period:</span> 01 Jan 2026 - 31 Jan 2026</p>
+                                    </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="h-14 w-14 bg-blue-600 rounded-xl flex items-center justify-center text-white mb-4 ml-auto">
-                                        <Building2 className="h-8 w-8" />
-                                    </div>
-                                    <h2 className="text-xl font-bold text-slate-900">ACME Corporation</h2>
-                                    <p className="text-sm text-slate-500 mt-1">Maharashtra, India</p>
+                                    <h2 className="text-xl font-bold uppercase text-slate-900">ACME Corporation</h2>
+                                    <p className="text-sm text-slate-600 mt-1">Maharashtra, India</p>
                                 </div>
                             </div>
 
@@ -749,7 +826,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                                 <div>
                                     <h3 className="text-xs font-bold text-slate-400 uppercase mb-4 tracking-widest">To:</h3>
                                     <p className="font-bold text-lg text-slate-900 mb-1">{vendor.name}</p>
-                                    <p className="text-slate-600 leading-relaxed font-medium">
+                                    <p className="text-slate-600 leading-relaxed font-medium text-sm">
                                         {vendor.billingAddress?.street1}<br />
                                         {vendor.billingAddress?.city}, {vendor.billingAddress?.state}<br />
                                         {vendor.billingAddress?.pinCode}
@@ -772,23 +849,23 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                                 </div>
                             </div>
 
-                            <table className="w-full text-sm mb-12 flex-1">
+                            <table className="w-full text-sm mb-8 flex-1">
                                 <thead>
-                                    <tr className="border-y-2 border-slate-900">
-                                        <th className="py-4 text-left font-bold uppercase tracking-wider text-[11px]">Date</th>
-                                        <th className="py-4 text-left font-bold uppercase tracking-wider text-[11px]">Description</th>
-                                        <th className="py-4 text-right font-bold uppercase tracking-wider text-[11px]">Credits</th>
-                                        <th className="py-4 text-right font-bold uppercase tracking-wider text-[11px]">Debits</th>
-                                        <th className="py-4 text-right font-bold uppercase tracking-wider text-[11px]">Balance</th>
+                                    <tr className="border-b-2 border-slate-900 text-slate-900">
+                                        <th className="py-3 text-left font-bold uppercase tracking-wider text-[11px]">Date</th>
+                                        <th className="py-3 text-left font-bold uppercase tracking-wider text-[11px]">Description</th>
+                                        <th className="py-3 text-right font-bold uppercase tracking-wider text-[11px]">Credits</th>
+                                        <th className="py-3 text-right font-bold uppercase tracking-wider text-[11px]">Debits</th>
+                                        <th className="py-3 text-right font-bold uppercase tracking-wider text-[11px]">Balance</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-100">
+                                <tbody className="divide-y divide-slate-100 text-slate-700">
                                     <tr className="bg-slate-50/50">
                                         <td className="py-4 italic font-medium">01/01/2026</td>
                                         <td className="py-4 font-bold text-slate-600">Opening Balance</td>
                                         <td className="py-4 text-right font-medium">-</td>
                                         <td className="py-4 text-right font-medium">-</td>
-                                        <td className="py-4 text-right font-bold">{formatCurrency(vendor.openingBalance || 0)}</td>
+                                        <td className="py-4 text-right font-bold text-slate-900">{formatCurrency(vendor.openingBalance || 0)}</td>
                                     </tr>
                                     {transactions.bills.slice(0, 8).map((bill) => (
                                         <tr key={bill.id}>
@@ -799,13 +876,13 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                                             </td>
                                             <td className="py-4 text-right font-bold text-red-600">{formatCurrency(bill.amount)}</td>
                                             <td className="py-4 text-right font-medium">-</td>
-                                            <td className="py-4 text-right font-bold">{formatCurrency(bill.balance)}</td>
+                                            <td className="py-4 text-right font-bold text-slate-900">{formatCurrency(bill.balance)}</td>
                                         </tr>
                                     ))}
                                 </tbody>
                             </table>
 
-                            <div className="border-t-2 border-slate-900 pt-8 mt-auto flex justify-end">
+                            <div className="border-t-2 border-slate-900 pt-6 mt-auto flex justify-end">
                                 <div className="w-64 space-y-3">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-slate-500 font-bold uppercase tracking-tight text-[11px]">Total Purchases</span>
@@ -821,7 +898,7 @@ function VendorDetailPanel({ vendor, onClose, onEdit, onDelete }: VendorDetailPa
                                     </div>
                                 </div>
                             </div>
-                            <div className="mt-20 text-[10px] text-slate-400 text-center uppercase tracking-[0.2em] font-bold">
+                            <div className="mt-12 text-[10px] text-slate-400 text-center uppercase tracking-[0.2em] font-bold">
                                 This is a computer generated document.
                             </div>
                         </div>
@@ -841,7 +918,9 @@ export default function VendorsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const isMobile = useIsMobile();
     const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
 
     useEffect(() => {
         fetchVendors();
@@ -917,127 +996,255 @@ export default function VendorsPage() {
 
     return (
         <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-            <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="vendors-layout">
-                <ResizablePanel
-                    defaultSize={selectedVendor ? 30 : 100}
-                    minSize={30}
-                    className="flex flex-col overflow-hidden bg-white border-r border-slate-200"
-                >
-                    <div className="flex flex-col h-full overflow-hidden">
-
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 h-[73px]">
-                            <div className="flex items-center gap-4 flex-1">
+            {isMobile ? (
+                // Mobile View: Switch between list and detail
+                <div className="flex-1 flex flex-col overflow-hidden bg-white">
+                    {selectedVendor ? (
+                        <VendorDetailPanel
+                            vendor={selectedVendor}
+                            onClose={handleClosePanel}
+                            onEdit={handleEditVendor}
+                            onDelete={handleDeleteClick}
+                        />
+                    ) : (
+                        <div className="flex flex-col h-full overflow-hidden">
+                            {/* Mobile Header */}
+                            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
                                 <h1 className="text-xl font-semibold text-slate-900">All Vendors</h1>
+                                <Button onClick={() => setLocation("/vendors/new")} size="sm" className="bg-blue-600 hover:bg-blue-700">
+                                    <Plus className="h-4 w-4 mr-2" /> New
+                                </Button>
+                            </div>
 
-                                <div className="relative flex-1 max-w-[240px] hidden sm:block">
+                            {/* Mobile Search */}
+                            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/50">
+                                <div className="relative">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                                     <Input
                                         placeholder="Search vendors..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-9 h-9"
+                                        className="pl-9 h-9 bg-white"
                                     />
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <Button onClick={() => setLocation("/vendors/new")} className="bg-blue-600 hover:bg-blue-700">
-                                    <Plus className="h-4 w-4 mr-2" /> New Vendor
-                                </Button>
-                            </div>
-                        </div>
-
-                        {/* List */}
-                        <div className="flex-1 flex flex-col min-h-0">
-                            <div className="flex-1 overflow-auto">
+                            {/* Mobile List Content */}
+                            <div className="flex-1 overflow-auto scrollbar-hide">
                                 {loading ? (
                                     <div className="p-8 text-center text-slate-500">Loading vendors...</div>
                                 ) : filteredVendors.length === 0 ? (
                                     <div className="p-8 text-center text-slate-500">No vendors found.</div>
-                                ) : selectedVendor ? (
+                                ) : (
                                     <div className="divide-y divide-slate-100">
-                                        {filteredVendors.map(vendor => (
+                                        {paginatedItems.map(vendor => (
                                             <div
                                                 key={vendor.id}
-                                                className={`p-4 hover:bg-slate-50 cursor-pointer ${selectedVendor.id === vendor.id ? 'bg-blue-50 border-l-2 border-l-blue-600' : ''}`}
+                                                className="p-4 hover:bg-slate-50 cursor-pointer flex justify-between items-center"
                                                 onClick={() => handleVendorClick(vendor)}
                                             >
-                                                <div className="font-medium text-slate-900">{vendor.displayName || vendor.name}</div>
-                                                <div className="text-sm text-slate-500">{vendor.companyName}</div>
+                                                <div>
+                                                    <div className="font-medium text-blue-600">{vendor.displayName || vendor.name}</div>
+                                                    <div className="text-sm text-slate-500">{vendor.companyName || '-'}</div>
+                                                </div>
+                                                <ChevronRight className="h-4 w-4 text-slate-300" />
                                             </div>
                                         ))}
                                     </div>
-                                ) : (
-                                    <table className="w-full text-sm">
-                                        <thead className="bg-slate-50 sticky top-0 z-10">
-                                            <tr className="border-b border-slate-200">
-                                                <th className="w-10 px-3 py-3 text-left">
-                                                    <Checkbox />
-                                                </th>
-                                                <th className="px-3 py-3 text-left font-semibold text-slate-500">NAME</th>
-                                                <th className="px-3 py-3 text-left font-semibold text-slate-500">COMPANY</th>
-                                                <th className="px-3 py-3 text-left font-semibold text-slate-500">EMAIL</th>
-                                                <th className="px-3 py-3 text-left font-semibold text-slate-500">PHONE</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {paginatedItems.map(vendor => (
-                                                <tr
-                                                    key={vendor.id}
-                                                    className="hover:bg-slate-50 cursor-pointer"
-                                                    onClick={() => handleVendorClick(vendor)}
-                                                >
-                                                    <td className="px-3 py-3"><Checkbox onClick={e => toggleSelectVendor(vendor.id, e)} /></td>
-                                                    <td className="px-3 py-3 font-medium text-blue-600">{vendor.displayName || vendor.name}</td>
-                                                    <td className="px-3 py-3 text-slate-600">{vendor.companyName || '-'}</td>
-                                                    <td className="px-3 py-3 text-slate-600">{vendor.email || '-'}</td>
-                                                    <td className="px-3 py-3 text-slate-600">{vendor.phone || '-'}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
                                 )}
                             </div>
 
-                            {/* Pagination - Sticky Bottom */}
-                            <div className="flex-none border-t border-slate-200 bg-white">
-                                <TablePagination
-                                    currentPage={currentPage}
-                                    totalPages={totalPages}
-                                    totalItems={totalItems}
-                                    itemsPerPage={itemsPerPage}
-                                    onPageChange={goToPage}
-                                />
+                            {/* Mobile Pagination */}
+                            {filteredVendors.length > 0 && (
+                                <div className="border-t border-slate-200">
+                                    <TablePagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        totalItems={totalItems}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={goToPage}
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                // Desktop View: Resizable side-by-side panels
+                <ResizablePanelGroup key={selectedVendor ? "split" : "single"} direction="horizontal" className="h-full w-full">
+                    <ResizablePanel
+                        defaultSize={selectedVendor ? 29 : 100}
+                        minSize={selectedVendor ? 29 : 100}
+                        maxSize={selectedVendor ? 29 : 100}
+                        className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
+                    >
+                        <div className="flex flex-col h-full overflow-hidden">
+
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                                <div className="flex items-center gap-4 flex-1">
+                                    <h1 className="text-xl font-semibold text-slate-900 line-clamp-2">All Vendors</h1>
+                                    <span className="text-sm text-slate-400">({vendors.length})</span>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    {selectedVendor ? (
+                                        isSearchVisible ? (
+                                            <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                <Input
+                                                    autoFocus
+                                                    placeholder="Search..."
+                                                    value={searchTerm}
+                                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                                    onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                                                    className="pl-9 h-9"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-9 w-9 px-0"
+                                                data-testid="button-search-compact"
+                                                onClick={() => setIsSearchVisible(true)}
+                                            >
+                                                <Search className="h-4 w-4 text-slate-400" />
+                                            </Button>
+                                        )
+                                    ) : (
+                                        <div className="relative w-[240px] hidden sm:block">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                placeholder="Search vendors..."
+                                                value={searchTerm}
+                                                onChange={(e) => setSearchTerm(e.target.value)}
+                                                className="pl-9 h-9"
+                                            />
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        onClick={() => setLocation("/vendors/new")}
+                                        className={cn(
+                                            "bg-blue-600 hover:bg-blue-700 h-9",
+                                            selectedVendor ? 'w-9 px-0' : 'gap-2'
+                                        )}
+                                        size={selectedVendor ? "icon" : "default"}
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        {!selectedVendor && "New"}
+                                    </Button>
+
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" size="icon" className="h-9 w-9">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem>Import Vendors</DropdownMenuItem>
+                                            <DropdownMenuItem>Export Vendors</DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem>Refresh List</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
+                            </div>
+
+                            {/* List */}
+                            <div className="flex-1 flex flex-col min-h-0">
+                                <div className="flex-1 overflow-auto scrollbar-hide">
+                                    {loading ? (
+                                        <div className="p-8 text-center text-slate-500">Loading vendors...</div>
+                                    ) : filteredVendors.length === 0 ? (
+                                        <div className="p-8 text-center text-slate-500">No vendors found.</div>
+                                    ) : selectedVendor ? (
+                                        <div className="divide-y divide-slate-100">
+                                            {filteredVendors.map(vendor => (
+                                                <div
+                                                    key={vendor.id}
+                                                    className={`p-4 hover:bg-slate-50 cursor-pointer ${selectedVendor.id === vendor.id ? 'bg-blue-50 border-l-2 border-l-blue-600' : ''}`}
+                                                    onClick={() => handleVendorClick(vendor)}
+                                                >
+                                                    <div className="font-medium text-slate-900">{vendor.displayName || vendor.name}</div>
+                                                    <div className="text-sm text-slate-500">{vendor.companyName}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <table className="w-full text-sm">
+                                            <thead className="bg-slate-50 sticky top-0 z-10">
+                                                <tr className="border-b border-slate-200">
+                                                    <th className="w-10 px-3 py-3 text-left">
+                                                        <Checkbox />
+                                                    </th>
+                                                    <th className="px-3 py-3 text-left font-semibold">Name</th>
+                                                    <th className="px-3 py-3 text-left font-semibold">Company</th>
+                                                    <th className="px-3 py-3 text-left font-semibold">Email</th>
+                                                    <th className="px-3 py-3 text-left font-semibold">Phone</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100">
+                                                {paginatedItems.map(vendor => (
+                                                    <tr
+                                                        key={vendor.id}
+                                                        className="hover:bg-slate-50 cursor-pointer"
+                                                        onClick={() => handleVendorClick(vendor)}
+                                                    >
+                                                        <td className="px-3 py-3"><Checkbox onClick={e => toggleSelectVendor(vendor.id, e)} /></td>
+                                                        <td className="px-3 py-3 font-medium text-blue-600">{vendor.displayName || vendor.name}</td>
+                                                        <td className="px-3 py-3 text-slate-600">{vendor.companyName || '-'}</td>
+                                                        <td className="px-3 py-3 text-slate-600">{vendor.email || '-'}</td>
+                                                        <td className="px-3 py-3 text-slate-600">{vendor.phone || '-'}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    )}
+                                </div>
+                                <div className="flex-none border-t border-slate-200 bg-white">
+                                    <TablePagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        totalItems={totalItems}
+                                        itemsPerPage={itemsPerPage}
+                                        onPageChange={goToPage}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </ResizablePanel>
+                    </ResizablePanel>
 
-                {selectedVendor && (
-                    <>
-                        <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-                        <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
-                            <VendorDetailPanel
-                                vendor={selectedVendor}
-                                onClose={handleClosePanel}
-                                onEdit={handleEditVendor}
-                                onDelete={handleDeleteClick}
-                            />
-                        </ResizablePanel>
-                    </>
-                )}
-            </ResizablePanelGroup>
+                    {selectedVendor && (
+                        <>
+                            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+                            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+                                <VendorDetailPanel
+                                    vendor={selectedVendor}
+                                    onClose={handleClosePanel}
+                                    onEdit={handleEditVendor}
+                                    onDelete={handleDeleteClick}
+                                />
+                            </ResizablePanel>
+                        </>
+                    )}
+                </ResizablePanelGroup>
+            )}
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Vendor</AlertDialogTitle>
-                        <AlertDialogDescription>Are you sure you want to delete this vendor?</AlertDialogDescription>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this vendor? This action cannot be undone.
+                        </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">Delete</AlertDialogAction>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Delete
+                        </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

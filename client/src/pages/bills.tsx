@@ -30,6 +30,7 @@ import {
   Upload,
   RefreshCw,
   Lightbulb,
+  ArrowUpDown
 } from "lucide-react";
 import { robustIframePrint } from "@/lib/robust-print";
 import { generatePDFFromElement } from "@/lib/pdf-utils";
@@ -49,6 +50,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   ResizableHandle,
@@ -203,389 +208,139 @@ function BillPDFView({ bill, branding, organization }: { bill: Bill; branding?: 
   const paymentStatus = getPaymentStatus(bill);
 
   return (
-    <div className="max-w-4xl mx-auto shadow-lg bg-white">
-      <div
-        className="bg-white border border-slate-200"
-        id="bill-pdf-content"
-        style={{
-          backgroundColor: "#ffffff",
-          color: "#0f172a",
-          width: "210mm",
-          minHeight: "297mm",
-          margin: "0 auto",
-        }}
-      >
-        <div className="p-8 pt-12">
-          <PurchasePDFHeader
-            logo={branding?.logo}
-            documentTitle="BILL"
-            documentNumber={bill.billNumber}
-            date={bill.billDate}
-            organization={organization}
-          />
+    <div id="bill-pdf-content" className="bg-white" style={{
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      color: '#0f172a',
+      padding: '40px',
+      margin: '0',
+      minHeight: '296mm',
+      width: '100%',
+      maxWidth: '210mm',
+      boxSizing: 'border-box',
+      lineHeight: '1.5'
+    }}>
+      {/* Header Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <PurchasePDFHeader
+          logo={branding?.logo}
+          documentTitle="BILL"
+          documentNumber={bill.billNumber}
+          date={bill.billDate}
+          organization={organization}
+        />
+      </div>
 
-          {/* Remaining Header Section - To Be Removed Later */}
-          <div className="flex justify-between items-start mb-12" style={{ display: 'none' }}>
-            <div className="flex flex-col gap-1">
-              {branding?.logo?.url ? (
-                <img
-                  src={branding.logo.url}
-                  alt="Company Logo"
-                  className="h-12 w-auto mb-2 object-contain self-start"
-                  data-testid="img-bill-logo"
-                />
-              ) : (
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className="w-8 h-8 bg-slate-800 rounded flex items-center justify-center"
-                    style={{ backgroundColor: "#1e293b" }}
-                  >
-                    <span className="text-white font-bold text-sm">S</span>
-                  </div>
-                  <span
-                    className="text-xl font-bold tracking-tight"
-                    style={{ color: "#0f172a" }}
-                  >
-                    SKILLTON IT
-                  </span>
-                </div>
-              )}
-              <div
-                className="text-[13px] leading-relaxed"
-                style={{ color: "#475569" }}
-              >
-                <p>Hinjewadi - Wakad road</p>
-                <p>Hinjewadi</p>
-                <p>Pune Maharashtra 411057</p>
-                <p>India</p>
-                <p>GSTIN 27AZCPA5145K1ZH</p>
-                <p>Sales.SkilltonIT@skilltonit.com</p>
-                <p>www.skilltonit.com</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <h1
-                className="text-4xl font-light mb-1 tracking-tight"
-                style={{ color: "#0f172a" }}
-              >
-                BILL
-              </h1>
-              <p className="font-medium mb-4" style={{ color: "#475569" }}>
-                Bill# {bill.billNumber}
-              </p>
-              <div className="mt-4">
-                <p
-                  className="text-[13px] font-medium uppercase tracking-wider mb-1"
-                  style={{ color: "#64748b" }}
-                >
-                  Balance Due
-                </p>
-                <p className="text-2xl font-bold" style={{ color: "#0f172a" }}>
-                  {formatCurrency(bill.balanceDue)}
-                </p>
-              </div>
-            </div>
+      {/* Bill From and Details Header - Responsive Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-10" style={{ display: 'grid', marginBottom: '40px' }}>
+        <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+          <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+            BILL FROM
+          </h3>
+          <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+            {bill.vendorName}
+          </p>
+          <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+            {/* Vendor address details */}
+            <p style={{ margin: '0' }}>{bill.vendorEmail || 'Contact Email'}</p>
           </div>
-
-          {/* Bill From & Details Section */}
-          <div className="grid grid-cols-2 gap-12 mb-10">
-            <div>
-              <h4
-                className="text-[13px] font-semibold uppercase tracking-wider mb-2"
-                style={{ color: "#94a3b8" }}
-              >
-                Bill From
-              </h4>
-              <div
-                className="text-[14px] leading-relaxed"
-                style={{ color: "#334155" }}
-              >
-                <p
-                  className="font-bold mb-1 uppercase"
-                  style={{ color: "#0f172a" }}
-                >
-                  {bill.vendorName}
-                </p>
-                {bill.vendorAddress && (
-                  <>
-                    {bill.vendorAddress.street1 && (
-                      <p>{bill.vendorAddress.street1}</p>
-                    )}
-                    {bill.vendorAddress.street2 && (
-                      <p>{bill.vendorAddress.street2}</p>
-                    )}
-                    <p>
-                      {bill.vendorAddress.city &&
-                        `${bill.vendorAddress.city}${bill.vendorAddress.state ? ", " : ""}`}
-                      {bill.vendorAddress.state}
-                    </p>
-                    {bill.vendorAddress.pinCode && (
-                      <p>{bill.vendorAddress.pinCode}</p>
-                    )}
-                    {bill.vendorAddress.country && (
-                      <p>{bill.vendorAddress.country}</p>
-                    )}
-                    {bill.vendorAddress.gstin && (
-                      <p
-                        className="mt-1 font-medium"
-                        style={{ color: "#0f172a" }}
-                      >
-                        GSTIN {bill.vendorAddress.gstin}
-                      </p>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end">
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-[14px]">
-                <div className="font-medium" style={{ color: "#64748b" }}>
-                  Bill Date :
-                </div>
-                <div
-                  className="font-medium text-right"
-                  style={{ color: "#0f172a" }}
-                >
-                  {formatDate(bill.billDate)}
-                </div>
-
-                <div className="font-medium" style={{ color: "#64748b" }}>
-                  Due Date :
-                </div>
-                <div
-                  className="font-medium text-right"
-                  style={{ color: "#0f172a" }}
-                >
-                  {formatDate(bill.dueDate)}
-                </div>
-
-                <div className="font-medium" style={{ color: "#64748b" }}>
-                  Terms :
-                </div>
-                <div
-                  className="font-medium text-right"
-                  style={{ color: "#0f172a" }}
-                >
-                  {bill.paymentTerms || "Due on Receipt"}
-                </div>
-              </div>
-            </div>
+        </div>
+        <div>
+          <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+            SHIP TO
+          </h3>
+          <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+            {organization?.name || 'Your Company'}
+          </p>
+          <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+            <p style={{ margin: '0' }}>{organization?.street1 || ''} {organization?.city || ''}</p>
           </div>
+        </div>
+      </div>
 
-          {/* Items Table */}
-          <table className="w-full mb-8 border-collapse">
-            <thead>
-              <tr
-                className="text-white border-b-2"
-                style={{ backgroundColor: "#1e293b", borderColor: "#0f172a" }}
-              >
-                <th
-                  className="px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider w-12"
-                  style={{ color: "#ffffff" }}
-                >
-                  #
-                </th>
-                <th
-                  className="px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-wider"
-                  style={{ color: "#ffffff" }}
-                >
-                  Item & Description
-                </th>
-                <th
-                  className="px-4 py-3 text-center text-[12px] font-semibold uppercase tracking-wider"
-                  style={{ color: "#ffffff" }}
-                >
-                  HSN/SAC
-                </th>
-                <th
-                  className="px-4 py-3 text-center text-[12px] font-semibold uppercase tracking-wider"
-                  style={{ color: "#ffffff" }}
-                >
-                  Qty
-                </th>
-                <th
-                  className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-wider"
-                  style={{ color: "#ffffff" }}
-                >
-                  Rate
-                </th>
-                <th
-                  className="px-4 py-3 text-right text-[12px] font-semibold uppercase tracking-wider"
-                  style={{ color: "#ffffff" }}
-                >
-                  Amount
-                </th>
+      {/* Meta Information Bar - Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-[2px] mb-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-100" style={{
+        marginBottom: '40px',
+        backgroundColor: '#f1f5f9',
+        border: '1px solid #f1f5f9'
+      }}>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Bill Date</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{formatDate(bill.billDate)}</p>
+        </div>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Due Date</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#b91c1c', margin: '0' }}>{formatDate(bill.dueDate)}</p>
+        </div>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Status</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', margin: '0' }}>{paymentStatus}</p>
+        </div>
+      </div>
+
+      {/* Items Table */}
+      <div style={{ marginBottom: '32px', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#991b1b', color: '#ffffff' }}>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', borderRadius: '4px 0 0 0' }}>#</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Item & Description</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Qty</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Rate</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderRadius: '0 4px 0 0' }}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(bill.items || []).map((item, index) => (
+              <tr key={item.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#64748b', verticalAlign: 'top' }}>{index + 1}</td>
+                <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{item.name}</p>
+                  {item.description && (
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0', lineHeight: '1.4' }}>{item.description}</p>
+                  )}
+                </td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'center', verticalAlign: 'top', fontWeight: '600' }}>{item.quantity}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top' }}>{formatCurrency(item.rate)}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top', fontWeight: '700' }}>{formatCurrency(item.amount)}</td>
               </tr>
-            </thead>
-            <tbody>
-              {bill.items.map((item, index) => (
-                <tr
-                  key={item.id}
-                  className="border-b"
-                  style={{ borderColor: "#e2e8f0" }}
-                >
-                  <td
-                    className="px-4 py-4 text-[14px] align-top"
-                    style={{ color: "#334155" }}
-                  >
-                    {index + 1}
-                  </td>
-                  <td className="px-4 py-4 align-top">
-                    <p
-                      className="font-semibold text-[14px]"
-                      style={{ color: "#0f172a" }}
-                    >
-                      {item.itemName}
-                    </p>
-                    {item.description && (
-                      <p
-                        className="text-[13px] mt-1 leading-relaxed"
-                        style={{ color: "#64748b" }}
-                      >
-                        {item.description}
-                      </p>
-                    )}
-                  </td>
-                  <td
-                    className="px-4 py-4 text-center text-[14px] align-top"
-                    style={{ color: "#334155" }}
-                  >
-                    998315
-                  </td>
-                  <td
-                    className="px-4 py-4 text-center text-[14px] align-top"
-                    style={{ color: "#334155" }}
-                  >
-                    {item.quantity.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td
-                    className="px-4 py-4 text-right text-[14px] align-top"
-                    style={{ color: "#334155" }}
-                  >
-                    {item.rate.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td
-                    className="px-4 py-4 text-right text-[14px] font-semibold align-top"
-                    style={{ color: "#0f172a" }}
-                  >
-                    {item.amount.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-          {/* Totals Section */}
-          <div className="flex justify-end mb-12">
-            <div className="w-72 space-y-4">
-              <div
-                className="flex justify-between text-[14px] font-medium pr-2"
-                style={{ color: "#475569" }}
-              >
-                <span>Sub Total</span>
-                <span style={{ color: "#0f172a" }}>
-                  {bill.subTotal.toLocaleString("en-IN", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-
-              {bill.taxAmount && bill.taxAmount > 0 && (
-                <div
-                  className="flex justify-between text-[14px] font-medium pr-2"
-                  style={{ color: "#475569" }}
-                >
-                  <span>IGST18 (18%)</span>
-                  <span style={{ color: "#0f172a" }}>
-                    {bill.taxAmount.toLocaleString("en-IN", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              )}
-
-              <div
-                className="flex justify-between text-[16px] font-bold pr-2 pt-2 border-t"
-                style={{ color: "#0f172a", borderColor: "#f1f5f9" }}
-              >
-                <span>Total</span>
-                <span>{formatCurrency(bill.total)}</span>
-              </div>
-
-              {bill.paymentsMadeApplied &&
-                bill.paymentsMadeApplied.length > 0 && (
-                  <div
-                    className="flex justify-between text-[14px] font-semibold pr-2"
-                    style={{ color: "#dc2626" }}
-                  >
-                    <span>Payments Made</span>
-                    <span>
-                      (-){" "}
-                      {bill.paymentsMadeApplied
-                        .reduce((sum, p) => sum + p.amount, 0)
-                        .toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                )}
-
-              <div
-                className="flex justify-between items-center p-3 rounded-sm text-[16px] font-bold border-l-4"
-                style={{
-                  backgroundColor: "#f8fafc",
-                  color: "#0f172a",
-                  borderLeftColor: "#1e293b",
-                }}
-              >
-                <span>Balance Due</span>
-                <span>{formatCurrency(bill.balanceDue)}</span>
-              </div>
+      {/* Bottom Section: Notes and Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8 md:gap-12 mb-10" style={{ marginBottom: '40px' }}>
+        {/* Notes */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {bill.notes && (
+            <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+              <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                Notes
+              </h4>
+              <p style={{ fontSize: '13px', color: '#475569', margin: '0', lineHeight: '1.6' }}>{bill.notes}</p>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Footer Section */}
-          <div className="mt-20 px-8">
-            <div className="w-1/2">
-              <div className="relative">
-                {branding?.signature?.url ? (
-                  <div className="mb-2">
-                    <img
-                      src={branding.signature.url}
-                      alt="Authorized Signature"
-                      className="max-h-16 w-auto object-contain mix-blend-multiply"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-16 mb-2"></div>
-                )}
-                <div
-                  className="border-t-2 w-full pt-2"
-                  style={{ borderColor: "#0f172a" }}
-                >
-                  <p
-                    className="text-[13px] font-bold"
-                    style={{ color: "#0f172a" }}
-                  >
-                    Authorized Signature
-                  </p>
-                </div>
-              </div>
+        {/* Summary Table */}
+        <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', padding: '20px', border: '1px solid #f1f5f9', alignSelf: 'start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+            <span style={{ color: '#64748b', fontWeight: '600' }}>Sub Total</span>
+            <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(bill.subtotal || bill.total)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e2e8f0' }}>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>Total</span>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#991b1b' }}>{formatCurrency(bill.total)}</span>
+          </div>
+          {bill.amountPaid > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', fontSize: '13px', color: '#16a34a' }}>
+              <span style={{ fontWeight: '600' }}>Amount Paid</span>
+              <span style={{ fontWeight: '700' }}>(-) {formatCurrency(bill.amountPaid)}</span>
             </div>
-          </div>
-
-          {/* Page Number (Visual only for PDF match) */}
-          <div
-            className="mt-16 text-right border-t pt-4 px-8 pb-8"
-            style={{ borderColor: "#f1f5f9" }}
-          >
-            <span className="text-[12px]" style={{ color: "#94a3b8" }}>
-              1
-            </span>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: '14px', fontWeight: '800', color: '#0f172a' }}>Balance Due</span>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: '#b91c1c' }}>{formatCurrency(bill.balanceDue)}</span>
           </div>
         </div>
       </div>
@@ -772,8 +527,13 @@ function BillDetailView({ bill }: { bill: Bill }) {
       {bill.journalEntries && bill.journalEntries.length > 0 && (
         <div className="border-t pt-4">
           <Tabs defaultValue="journal">
-            <TabsList>
-              <TabsTrigger value="journal">Journal</TabsTrigger>
+            <TabsList className="h-auto p-0 bg-transparent gap-6">
+              <TabsTrigger
+                value="journal"
+                className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none"
+              >
+                Journal
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="journal">
               <p className="text-xs text-slate-500 mb-2">
@@ -1001,7 +761,7 @@ function BillDetailPanel({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4">
+      <div className="flex-1 overflow-auto scrollbar-hide p-4">
         {showPdfView ? (
           <BillPDFView bill={bill} branding={branding} />
         ) : (
@@ -1146,7 +906,7 @@ function RecordPaymentDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto scrollbar-hide">
         <DialogHeader>
           <DialogTitle
             className="text-xl font-semibold"
@@ -1387,6 +1147,7 @@ export default function Bills() {
   const [expectedPaymentDate, setExpectedPaymentDate] = useState("");
   const [journalDialogOpen, setJournalDialogOpen] = useState(false);
   const [branding, setBranding] = useState<any>(null);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   // Use organization context instead of local state
   const { currentOrganization: organization } = useOrganization();
@@ -1395,6 +1156,18 @@ export default function Bills() {
     fetchBills();
     fetchBranding();
   }, []);
+
+  // Deep linking for selected bill
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const billId = searchParams.get('id');
+    if (billId && bills.length > 0) {
+      const bill = bills.find(b => b.id === billId);
+      if (bill) {
+        setSelectedBill(bill);
+      }
+    }
+  }, [bills]);
 
   const fetchBranding = async () => {
     try {
@@ -1648,23 +1421,26 @@ export default function Bills() {
 
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="bills-layout">
+      <ResizablePanelGroup key={selectedBill ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
-          defaultSize={selectedBill ? 25 : 100}
-          minSize={20}
-          className="flex flex-col overflow-hidden bg-white"
+          defaultSize={selectedBill ? 29 : 100}
+          minSize={selectedBill ? 29 : 100}
+          maxSize={selectedBill ? 29 : 100}
+          className="flex flex-col overflow-hidden bg-white min-w-[25%]"
         >
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+          <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
             <div className="flex items-center gap-4 flex-1">
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors"
+                      className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
                     >
-                      {activeFilter === "All" ? "All Bills" : `${activeFilter} Bills`}
-                      <ChevronDown className="h-4 w-4 text-slate-500" />
+                      <span className="line-clamp-2">
+                        {activeFilter === "All" ? "All Bills" : `${activeFilter} Bills`}
+                      </span>
+                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-56">
@@ -1690,29 +1466,82 @@ export default function Bills() {
                 </DropdownMenu>
                 <span className="text-sm text-slate-400">({bills.length})</span>
               </div>
-
-              <div className="relative flex-1 max-w-[240px] hidden sm:block">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search bills..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9"
-                  data-testid="input-search-bills"
-                />
-              </div>
             </div>
+
             <div className="flex items-center gap-2">
+              {selectedBill ? (
+                isSearchVisible ? (
+                  <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      autoFocus
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                      className="pl-9 h-9"
+                    />
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-9 w-9 px-0"
+                    data-testid="button-search-compact"
+                    onClick={() => setIsSearchVisible(true)}
+                  >
+                    <Search className="h-4 w-4 text-slate-400" />
+                  </Button>
+                )
+              ) : (
+                <div className="relative w-[240px] hidden sm:block">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search bills..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-9"
+                    data-testid="input-search-bills"
+                  />
+                </div>
+              )}
+
               <Button
                 onClick={() => setLocation("/bills/new")}
-                className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-9"
+                className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedBill ? 'w-9 px-0' : ''}`}
                 data-testid="button-new-bill"
+                size={selectedBill ? "icon" : "default"}
               >
-                <Plus className="h-4 w-4" /> New Bill
+                <Plus className={`h-4 w-4 ${selectedBill ? '' : 'mr-1.5'}`} />
+                {!selectedBill && "New Bill"}
               </Button>
-              <Button variant="outline" size="icon" className="h-9 w-9">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-9 w-9">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 p-1">
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger>
+                      <ArrowUpDown className="mr-2 h-4 w-4" />
+                      <span>Sort by</span>
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuPortal>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem>Date</DropdownMenuItem>
+                        <DropdownMenuItem>Bill Number</DropdownMenuItem>
+                        <DropdownMenuItem>Vendor Name</DropdownMenuItem>
+                        <DropdownMenuItem>Amount</DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuPortal>
+                  </DropdownMenuSub>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => fetchBills()}>
+                    <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
 
@@ -1733,7 +1562,7 @@ export default function Bills() {
 
 
           <div className="flex-1 flex flex-col min-h-0 relative">
-            <div className="flex-1 overflow-auto relative">
+            <div className="flex-1 overflow-auto scrollbar-hide relative">
 
               {loading ? (
                 <div className="p-8 text-center text-slate-500">
@@ -1825,15 +1654,15 @@ export default function Bills() {
                   <TableHeader>
                     <TableRow className="bg-slate-50">
                       <TableHead className="w-10"></TableHead>
-                      <TableHead className="text-xs">DATE</TableHead>
-                      <TableHead className="text-xs">BILL#</TableHead>
-                      <TableHead className="text-xs">REFERENCE NUMBER</TableHead>
-                      <TableHead className="text-xs">VENDOR NAME</TableHead>
-                      <TableHead className="text-xs">STATUS</TableHead>
-                      <TableHead className="text-xs">DUE DATE</TableHead>
-                      <TableHead className="text-xs text-right">AMOUNT</TableHead>
-                      <TableHead className="text-xs text-right">
-                        BALANCE DUE
+                      <TableHead className="font-semibold">Date</TableHead>
+                      <TableHead className="font-semibold">Bill#</TableHead>
+                      <TableHead className="font-semibold text-xs text-slate-500 uppercase">Reference Number</TableHead>
+                      <TableHead className="font-semibold">Vendor Name</TableHead>
+                      <TableHead className="font-semibold">Status</TableHead>
+                      <TableHead className="font-semibold">Due Date</TableHead>
+                      <TableHead className="font-semibold text-right">Amount</TableHead>
+                      <TableHead className="font-semibold text-right">
+                        Balance Due
                       </TableHead>
                       <TableHead className="w-10"></TableHead>
                     </TableRow>
@@ -1932,7 +1761,7 @@ export default function Bills() {
         {selectedBill && (
           <>
             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
               <BillDetailPanel
                 bill={selectedBill}
                 branding={branding}

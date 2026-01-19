@@ -59,6 +59,7 @@ export async function generatePDFFromElement(
         clonedElement.style.padding = '0';
         clonedElement.style.width = '100%';
         clonedElement.style.backgroundColor = '#ffffff';
+        clonedElement.style.minHeight = '0'; // Fix: Clear possible min-height that could cause overflow
         container.appendChild(clonedElement);
 
         // Ensure images and fonts are ready
@@ -104,7 +105,7 @@ export async function generatePDFFromElement(
             let heightLeft = imgHeight;
             let page = 0;
 
-            while (heightLeft > 0) {
+            while (heightLeft > 2) { // Use 2mm tolerance to avoid extra blank pages
                 if (page > 0) {
                     pdf.addPage();
                 }

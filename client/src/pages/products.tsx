@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -70,6 +71,7 @@ export default function Products() {
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [showItemDetail, setShowItemDetail] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch items from API with status filter
@@ -174,24 +176,30 @@ export default function Products() {
 
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="items-layout">
+      <ResizablePanelGroup key={selectedItem ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
-          defaultSize={selectedItem ? 30 : 100}
-          minSize={20}
-          className="flex flex-col overflow-hidden bg-white"
+          defaultSize={selectedItem ? 33 : 100}
+          minSize={selectedItem ? 33 : 100}
+          maxSize={selectedItem ? 33 : 100}
+          className="flex flex-col overflow-hidden bg-white min-w-[25%]"
         >
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-              <div className="flex items-center gap-4 flex-1">
-                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+              <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
                   <DropdownMenu open={filterOpen} onOpenChange={setFilterOpen}>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="text-xl font-semibold text-slate-900 gap-2 px-2 hover:bg-transparent" data-testid="dropdown-items-filter">
-                        {getCurrentFilterLabel()}
-                        <ChevronDown className="h-4 w-4 text-slate-500" />
+                      <Button variant="ghost" className="gap-2 p-0 hover:bg-transparent transition-all text-left whitespace-normal h-auto" data-testid="dropdown-items-filter">
+                        <span className={cn(
+                          "font-bold text-slate-900 transition-all line-clamp-2",
+                          selectedItem ? "text-lg lg:text-xl" : "text-xl"
+                        )}>
+                          {getCurrentFilterLabel()}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
+                    <DropdownMenuContent align="start" className="w-56">
                       {filterOptions.map((option) => (
                         <DropdownMenuItem
                           key={option.value}
@@ -199,7 +207,7 @@ export default function Products() {
                             setFilterStatus(option.value);
                             setFilterOpen(false);
                           }}
-                          className={filterStatus === option.value ? "bg-blue-50 text-blue-600" : ""}
+                          className={filterStatus === option.value ? "bg-blue-50 text-blue-600 font-medium" : ""}
                           data-testid={`filter-option-${option.value}`}
                         >
                           {option.label}
@@ -207,110 +215,146 @@ export default function Products() {
                       ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <span className="text-sm text-slate-400">({items.length})</span>
+                  {!selectedItem && <span className="text-sm text-slate-400 shrink-0">({items.length})</span>}
                 </div>
+              </div>
 
-                <div className="relative flex-1 max-w-[240px] hidden sm:block">
+              <div className="flex items-center gap-2 shrink-0">
+                {selectedItem ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 px-0"
+                      data-testid="button-search-compact"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search products..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-items"
+                    />
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => setLocation("/products/new")}
+                  className={cn(
+                    "bg-blue-600 hover:bg-blue-700 gap-1.5 h-8 font-semibold",
+                    selectedItem && "w-8 px-0"
+                  )}
+                  size={selectedItem ? "icon" : "default"}
+                  data-testid="button-new-item"
+                >
+                  <Plus className="h-4 w-4" />
+                  {!selectedItem && <span>New</span>}
+                </Button>
+                {!selectedItem && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-8 w-8" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          Sort by
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Name</DropdownMenuItem>
+                          <DropdownMenuItem>Purchase Rate</DropdownMenuItem>
+                          <DropdownMenuItem>Rate</DropdownMenuItem>
+                          <DropdownMenuItem>HSN/SAC</DropdownMenuItem>
+                          <DropdownMenuItem>Last Modified Time</DropdownMenuItem>
+                          <DropdownMenuItem>Created Time</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      <DropdownMenuItem>
+                        <Import className="mr-2 h-4 w-4" />
+                        Import Items
+                      </DropdownMenuItem>
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Export as CSV</DropdownMenuItem>
+                          <DropdownMenuItem>Export as Excel</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => refetch()}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Refresh List
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Settings className="mr-2 h-4 w-4" />
+                        Preferences
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Reset Column Width
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Update New GST Rates
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <CheckSquare className="mr-2 h-4 w-4" />
+                        Validate HSN/SAC
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <History className="mr-2 h-4 w-4" />
+                        HSN/SAC Update History
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Search Bar - Hidden when item selected to maintain consistency */}
+            {!selectedItem && (
+              <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
+                <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <Input
                     placeholder="Search products..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-9 h-9"
-                    data-testid="input-search-items"
+                    data-testid="input-search-mobile"
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setLocation("/products/new")}
-                  className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-9"
-                  data-testid="button-new-item"
-                >
-                  <Plus className="h-4 w-4" /> New
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <ArrowUpDown className="mr-2 h-4 w-4" />
-                        Sort by
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuItem>Name</DropdownMenuItem>
-                        <DropdownMenuItem>Purchase Rate</DropdownMenuItem>
-                        <DropdownMenuItem>Rate</DropdownMenuItem>
-                        <DropdownMenuItem>HSN/SAC</DropdownMenuItem>
-                        <DropdownMenuItem>Last Modified Time</DropdownMenuItem>
-                        <DropdownMenuItem>Created Time</DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    <DropdownMenuItem>
-                      <Import className="mr-2 h-4 w-4" />
-                      Import Items
-                    </DropdownMenuItem>
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <Download className="mr-2 h-4 w-4" />
-                        Export
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuItem>Export as CSV</DropdownMenuItem>
-                        <DropdownMenuItem>Export as Excel</DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => refetch()}>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Refresh List
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Preferences
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Reset Column Width
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <FileText className="mr-2 h-4 w-4" />
-                      Update New GST Rates
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <CheckSquare className="mr-2 h-4 w-4" />
-                      Validate HSN/SAC
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <History className="mr-2 h-4 w-4" />
-                      HSN/SAC Update History
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            {/* Mobile Search Bar */}
-            <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9"
-                  data-testid="input-search-mobile"
-                />
-              </div>
-            </div>
+            )}
 
             <div className="flex-1 flex flex-col min-h-0">
-              <div className="flex-1 overflow-auto p-4 space-y-4">
+              <div className="flex-1 overflow-auto scrollbar-hide p-4 space-y-4">
 
 
 
@@ -454,7 +498,7 @@ export default function Products() {
         {selectedItem && showItemDetail && (
           <>
             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
               {/* Item Detail Panel */}
               <div className="h-full flex flex-col overflow-hidden bg-white">
                 <div className="sticky top-0 bg-white border-b border-slate-200 p-4 z-10">
@@ -503,7 +547,7 @@ export default function Products() {
                   </div>
                 </div>
 
-                <div className="flex-1 overflow-auto p-4 space-y-6">
+                <div className="flex-1 overflow-auto scrollbar-hide p-4 space-y-6">
                   {/* Overview Tab */}
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">

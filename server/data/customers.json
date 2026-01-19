@@ -125,18 +125,18 @@
       "customerType": "business",
       "status": "active",
       "billingAddress": {
-        "street": "",
-        "city": "",
-        "state": "",
+        "street": "BAlewadi pune",
+        "city": "abc",
+        "state": "maha",
         "country": "India",
-        "pincode": ""
+        "pincode": "413104"
       },
       "shippingAddress": {
-        "street": "",
-        "city": "",
-        "state": "",
+        "street": "BAlewadi pune",
+        "city": "abc",
+        "state": "maha",
         "country": "India",
-        "pincode": ""
+        "pincode": "413104"
       },
       "currency": "INR",
       "paymentTerms": "Due on Receipt",
@@ -145,9 +145,17 @@
       "portalStatus": "disabled",
       "contactPersons": [],
       "createdAt": "2025-12-12T06:54:53.423Z",
-      "updatedAt": "2026-01-06T09:26:10.033Z",
+      "updatedAt": "2026-01-19T04:27:31.849Z",
       "gstin": "",
-      "exemptionReason": ""
+      "exemptionReason": "",
+      "comments": [
+        {
+          "id": "1768709558070",
+          "text": "ok****gon****b**jjj____ujhj",
+          "author": "Admin User",
+          "createdAt": "2026-01-18T04:12:38.070Z"
+        }
+      ]
     },
     {
       "id": "11",

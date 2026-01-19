@@ -100,24 +100,24 @@ export default function Dashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-0">
+        <TabsList className="bg-transparent border-b border-slate-200 w-full justify-start rounded-none h-auto p-0 gap-6">
           <TabsTrigger
             value="dashboard"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-slate-500"
             data-testid="tab-dashboard"
           >
             Dashboard
           </TabsTrigger>
           <TabsTrigger
             value="getting-started"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-slate-500"
             data-testid="tab-getting-started"
           >
             Getting Started
           </TabsTrigger>
           <TabsTrigger
             value="recent-updates"
-            className="data-[state=active]:border-b-2 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 rounded-none px-4 py-3 font-medium text-muted-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+            className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-indigo-600 data-[state=active]:text-indigo-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-slate-500"
             data-testid="tab-recent-updates"
           >
             Recent Updates
@@ -314,8 +314,8 @@ export default function Dashboard() {
                     <button
                       onClick={() => setIncomeExpenseMode("accrual")}
                       className={`px-3 py-1.5 text-sm font-medium transition-colors ${incomeExpenseMode === "accrual"
-                          ? "bg-muted"
-                          : "bg-background hover:bg-muted/50"
+                        ? "bg-muted"
+                        : "bg-background hover:bg-muted/50"
                         }`}
                       data-testid="button-accrual"
                     >
@@ -324,8 +324,8 @@ export default function Dashboard() {
                     <button
                       onClick={() => setIncomeExpenseMode("cash")}
                       className={`px-3 py-1.5 text-sm font-medium transition-colors ${incomeExpenseMode === "cash"
-                          ? "bg-muted"
-                          : "bg-background hover:bg-muted/50"
+                        ? "bg-muted"
+                        : "bg-background hover:bg-muted/50"
                         }`}
                       data-testid="button-cash"
                     >
@@ -420,7 +420,7 @@ export default function Dashboard() {
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
-                    <div className="flex-1 space-y-2 max-h-48 overflow-y-auto">
+                    <div className="flex-1 space-y-2 max-h-48 overflow-y-auto scrollbar-hide">
                       {dashboard.topExpenses.slice(0, 5).map((expense, index) => (
                         <div key={expense.category} className="flex items-center justify-between text-sm">
                           <div className="flex items-center gap-2">

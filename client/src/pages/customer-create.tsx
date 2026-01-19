@@ -923,28 +923,28 @@ export default function CustomerCreate() {
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden mt-8">
                 <Tabs defaultValue="other_details" className="w-full">
                   <div className="border-b border-slate-100 bg-slate-50/50 px-6">
-                    <TabsList className="w-full justify-start h-auto bg-transparent p-0 rounded-none space-x-6">
+                    <TabsList className="w-full justify-start h-auto bg-transparent p-0 rounded-none gap-6">
                       <TabsTrigger
                         value="other_details"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-700 px-0 py-4 font-medium text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                        className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-sm text-slate-500"
                       >
                         Other Details
                       </TabsTrigger>
                       <TabsTrigger
                         value="address"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-700 px-0 py-4 font-medium text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                        className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-sm text-slate-500"
                       >
                         Address
                       </TabsTrigger>
                       <TabsTrigger
                         value="contact_persons"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-700 px-0 py-4 font-medium text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                        className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-sm text-slate-500"
                       >
                         Contact Persons
                       </TabsTrigger>
                       <TabsTrigger
                         value="custom_fields"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-700 px-0 py-4 font-medium text-sm text-slate-500 hover:text-slate-700 transition-colors"
+                        className="rounded-none border-b-2 border-transparent px-2 py-3 data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent hover:bg-transparent transition-none font-medium text-sm text-slate-500"
                       >
                         Custom Fields
                       </TabsTrigger>

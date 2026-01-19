@@ -1,0 +1,15 @@
+{
+  "triggers": [
+    {
+      "id": "e63b3d76-a355-4766-a961-e039c7374478",
+      "customerId": "6",
+      "recipients": [
+        "ganeshkale030303@gmail.com"
+      ],
+      "customSubject": "Account Updated - Cybaem Tech",
+      "customBody": "<p>Hi Ganesh kale,</p><p>Your customer profile has been updated.</p>",
+      "sendMode": "immediate",
+      "createdAt": "2026-01-19T04:27:31.860Z"
+    }
+  ]
+}

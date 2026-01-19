@@ -19,7 +19,8 @@ import {
   FileText,
   Tag,
   Car,
-  Check
+  Check,
+  ArrowUpDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AccountSelectDropdown, getAccountLabel } from "@/components/AccountSelectDropdown";
@@ -32,6 +33,10 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -264,6 +269,7 @@ export default function Expenses() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("all-expenses");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [sortBy, setSortBy] = useState("createdTime");
   const [showRecordExpense, setShowRecordExpense] = useState(false);
   const [showRecordMileage, setShowRecordMileage] = useState(false);
@@ -371,6 +377,8 @@ export default function Expenses() {
       }
     }
   }, [vendorIdFromUrl, vendorsData?.data]);
+
+
 
   const createExpenseMutation = useMutation({
     mutationFn: async (expense: any) => {
@@ -611,6 +619,18 @@ export default function Expenses() {
   const customers = customersData?.data || [];
   const mileageSettings = mileageSettingsData?.data;
 
+  // Deep linking for selected expense
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const expenseId = searchParams.get('id');
+    if (expenseId && expenses.length > 0) {
+      const expense = expenses.find(e => e.id === expenseId);
+      if (expense) {
+        setSelectedExpense(expense);
+      }
+    }
+  }, [expenses]);
+
   const sortedExpenses = [...expenses].sort((a, b) => {
     let aVal: any = a[sortBy as keyof Expense];
     let bVal: any = b[sortBy as keyof Expense];
@@ -688,21 +708,22 @@ export default function Expenses() {
 
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="expenses-layout">
+      <ResizablePanelGroup key={selectedExpense ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
-          defaultSize={selectedExpense ? 25 : 100}
-          minSize={20}
-          className="flex flex-col overflow-hidden bg-white border-r border-slate-200"
+          defaultSize={selectedExpense ? 33 : 100}
+          minSize={selectedExpense ? 33 : 100}
+          maxSize={selectedExpense ? 33 : 100}
+          className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
         >
           {/* Left side - Expense List */}
           <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between gap-4 p-4 border-b border-border/60 bg-white sticky top-0 z-10">
+            <div className="flex items-center justify-between gap-4 p-4 border-b border-border/60 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-lg font-semibold gap-1" data-testid="dropdown-expense-filter">
-                      All Expenses
-                      <ChevronDown className="h-4 w-4" />
+                    <Button variant="ghost" className="text-lg font-semibold gap-1 text-left whitespace-normal h-auto" data-testid="dropdown-expense-filter">
+                      <span className="line-clamp-2">All Expenses</span>
+                      <ChevronDown className="h-4 w-4 shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
@@ -713,10 +734,53 @@ export default function Expenses() {
               </div>
 
               <div className="flex items-center gap-2">
+                {selectedExpense ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search expenses..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-expenses"
+                    />
+                  </div>
+                )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button className="gap-1 bg-indigo-600 hover:bg-indigo-700" data-testid="button-new-expense">
-                      New <ChevronDown className="h-4 w-4" />
+                    <Button
+                      className={`gap-1 bg-indigo-600 hover:bg-indigo-700 h-9 ${selectedExpense ? 'w-9 px-0 justify-center' : ''}`}
+                      data-testid="button-new-expense"
+                      size={selectedExpense ? "icon" : "default"}
+                    >
+                      {selectedExpense ? (
+                        <Plus className="h-4 w-4" />
+                      ) : (
+                        <>New <ChevronDown className="h-4 w-4" /></>
+                      )}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
@@ -732,70 +796,33 @@ export default function Expenses() {
                 </DropdownMenu>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" data-testid="button-more-options">
+                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem data-testid="sort-by-label" className="font-semibold text-muted-foreground text-xs">
-                      Sort by
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('createdTime')} data-testid="sort-created-time">
-                      Created Time {sortBy === 'createdTime' && '✓'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('date')} data-testid="sort-date">
-                      Date {sortBy === 'date' && '✓'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('expenseAccount')} data-testid="sort-expense-account">
-                      Expense Account {sortBy === 'expenseAccount' && '✓'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('vendorName')} data-testid="sort-vendor-name">
-                      Vendor Name {sortBy === 'vendorName' && '✓'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('paidThrough')} data-testid="sort-paid-through">
-                      Paid Through {sortBy === 'paidThrough' && '✓'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('customerName')} data-testid="sort-customer-name">
-                      Customer Name {sortBy === 'customerName' && '✓'}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy('amount')} data-testid="sort-amount">
-                      Amount {sortBy === 'amount' && '✓'}
-                    </DropdownMenuItem>
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span>Sort by</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem onClick={() => setSortBy('date')}>Date</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('amount')}>Amount</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setSortBy('expenseAccount')}>Category</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setShowImportDialog(true)} data-testid="menu-import">
-                      <Upload className="h-4 w-4 mr-2" /> Import Expenses
+                    <DropdownMenuItem data-testid="menu-refresh" onClick={() => fetchExpenses()}>
+                      <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
                     </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-export">
-                      <Download className="h-4 w-4 mr-2" /> Export
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem data-testid="menu-preferences">
                       <Settings className="h-4 w-4 mr-2" /> Preferences
                     </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-custom-fields">
-                      <FileText className="h-4 w-4 mr-2" /> Manage Custom Fields
-                    </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-refresh">
-                      <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
-                    </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-reset-columns">
-                      Reset Column Width
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-border/40">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search expenses..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 h-9"
-                  data-testid="input-search-expenses"
-                />
               </div>
             </div>
 
@@ -823,7 +850,7 @@ export default function Expenses() {
                 </TabsContent>
 
                 <TabsContent value="all-expenses" className="flex-1 flex flex-col min-h-0 mt-0 data-[state=inactive]:hidden">
-                  <div className="flex-1 overflow-auto min-h-0">
+                  <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
                     <div className="p-0">
                       {isLoading ? (
                         <div className="flex items-center justify-center py-16">
@@ -956,7 +983,7 @@ export default function Expenses() {
         {selectedExpense && (
           <>
             <ResizableHandle withHandle className="w-[1px] bg-slate-200 hover:bg-blue-400 transition-colors" />
-            <ResizablePanel defaultSize={75} minSize={40} className="bg-white">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
               <ExpenseDetailPanel
                 expense={selectedExpense}
                 onClose={handleClosePanel}
@@ -977,16 +1004,28 @@ export default function Expenses() {
           resetExpenseForm();
         }
       }}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide">
           <DialogHeader>
             <div className="flex items-center justify-between">
               {isEditMode ? (
                 <DialogTitle data-testid="dialog-title-edit-expense">Edit Expense</DialogTitle>
               ) : (
                 <Tabs value={expenseTab} onValueChange={setExpenseTab}>
-                  <TabsList>
-                    <TabsTrigger value="record-expense" data-testid="tab-record-expense">Record Expense</TabsTrigger>
-                    <TabsTrigger value="record-mileage" data-testid="tab-record-mileage">Record Mileage</TabsTrigger>
+                  <TabsList className="bg-transparent border-b w-full justify-start rounded-none h-auto p-0 gap-6">
+                    <TabsTrigger
+                      value="record-expense"
+                      data-testid="tab-record-expense"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
+                    >
+                      Record Expense
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="record-mileage"
+                      data-testid="tab-record-mileage"
+                      className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
+                    >
+                      Record Mileage
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}
@@ -1218,7 +1257,7 @@ export default function Expenses() {
                             <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
                             <CommandInput placeholder="Search treatments..." className="h-9 border-0 focus:ring-0 bg-transparent" />
                           </div>
-                          <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain" style={{ scrollBehavior: 'auto' }} onWheel={(e) => e.stopPropagation()}>
+                          <CommandList className="max-h-[280px] overflow-y-auto scrollbar-hide overscroll-contain" style={{ scrollBehavior: 'auto' }} onWheel={(e) => e.stopPropagation()}>
                             <CommandEmpty className="py-6 text-center text-sm text-slate-500">No treatment found.</CommandEmpty>
                             <CommandGroup>
                               {GST_TREATMENTS.map((treatment) => (
@@ -1267,7 +1306,7 @@ export default function Expenses() {
                             <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
                             <CommandInput placeholder="Search states..." className="h-9 border-0 focus:ring-0 bg-transparent" />
                           </div>
-                          <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain" style={{ scrollBehavior: 'auto' }} onWheel={(e) => e.stopPropagation()}>
+                          <CommandList className="max-h-[280px] overflow-y-auto scrollbar-hide overscroll-contain" style={{ scrollBehavior: 'auto' }} onWheel={(e) => e.stopPropagation()}>
                             <CommandEmpty className="py-6 text-center text-sm text-slate-500">No state found.</CommandEmpty>
                             <CommandGroup>
                               {INDIAN_STATES.map((state) => (
@@ -1319,7 +1358,7 @@ export default function Expenses() {
                             <Search className="mr-2 h-4 w-4 shrink-0 text-slate-400" />
                             <CommandInput placeholder="Search states..." className="h-9 border-0 focus:ring-0 bg-transparent" />
                           </div>
-                          <CommandList className="max-h-[280px] overflow-y-auto overscroll-contain" style={{ scrollBehavior: 'auto' }} onWheel={(e) => e.stopPropagation()}>
+                          <CommandList className="max-h-[280px] overflow-y-auto scrollbar-hide overscroll-contain" style={{ scrollBehavior: 'auto' }} onWheel={(e) => e.stopPropagation()}>
                             <CommandEmpty className="py-6 text-center text-sm text-slate-500">No state found.</CommandEmpty>
                             <CommandGroup>
                               {INDIAN_STATES.map((state) => (
@@ -1931,9 +1970,12 @@ export default function Expenses() {
                   <table className="w-full">
                     <thead className="bg-slate-50">
                       <tr>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Start Date</th>
-                        <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Rate</th>
-                        <th className="px-3 py-2"></th>
+                        <th className="px-4 py-3 text-left font-semibold">Date</th>
+                        <th className="px-4 py-3 text-left font-semibold">Expense Account</th>
+                        <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference#</th>
+                        <th className="px-4 py-3 text-left font-semibold">Vendor Name</th>
+                        <th className="px-4 py-3 text-left font-semibold">Status</th>
+                        <th className="px-4 py-3 text-right font-semibold">Amount</th>
                       </tr>
                     </thead>
                     <tbody>

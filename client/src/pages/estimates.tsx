@@ -31,7 +31,8 @@ import {
   MessageSquare,
   History,
   FileDown,
-  Star
+  Star,
+  ArrowUpDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useOrganization } from "@/context/OrganizationContext";
@@ -53,6 +54,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -212,258 +217,204 @@ function QuotePDFView({ quote, branding, organization }: { quote: Quote; brandin
   };
 
   const totals = calculateTotals();
+
+  const formatAddress = (address: any) => {
+    if (!address) return [];
+    const parts = [address.street, address.city, address.state, address.country, address.pincode].filter(Boolean);
+    return parts;
+  };
+
+  const billToAddress = formatAddress(quote.billingAddress);
+  const shipToAddress = formatAddress(quote.shippingAddress);
+
   return (
-    <div className="bg-white" style={{ fontFamily: 'Arial, sans-serif' }}>
-      <div className="p-10">
-        {/* Standard Sales PDF Header */}
+    <div id="estimate-pdf-content" className="bg-white" style={{
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      color: '#0f172a',
+      padding: '40px',
+      margin: '0',
+      minHeight: '296mm',
+      width: '100%',
+      maxWidth: '210mm',
+      boxSizing: 'border-box',
+      lineHeight: '1.5'
+    }}>
+      {/* Header Section */}
+      <div style={{ marginBottom: '40px' }}>
         <SalesPDFHeader
           logo={branding?.logo || undefined}
-          documentTitle="Quote"
+          documentTitle="Quotation"
           documentNumber={quote.quoteNumber}
           date={quote.date}
           referenceNumber={quote.referenceNumber}
           organization={organization}
         />
+      </div>
 
-        {/* Total Badge */}
-        {/* <div className="flex justify-end mb-6">
-            <div className="p-4 bg-slate-100 border border-slate-300">
-              <p className="text-xs text-slate-600 mb-1">Total</p>
-              <p className="text-2xl font-bold">{formatCurrency(quote.total)}</p>
-            </div>
-          </div> */}
-
-        {/* Quote Metadata */}
-        <div className="border-t-2 border-slate-800 pt-4 mb-4">
-          <table className="w-full text-xs">
-            <tbody>
-              <tr>
-                <td className="py-2 w-1/3">
-                  <span className="font-semibold">Quote Date:</span> {formatDate(quote.date)}
-                </td>
-                <td className="py-2 w-1/3">
-                  <span className="font-semibold">Place Of Supply:</span> {quote.billingAddress?.state || 'Maharashtra (27)'}
-                </td>
-                <td className="py-2 w-1/3">
-                  <span className="font-semibold">Expiry Date:</span> {quote.expiryDate ? formatDate(quote.expiryDate) : formatDate(new Date(new Date(quote.date).setDate(new Date(quote.date).getDate() + 30)).toISOString())}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      {/* Addresses Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-10" style={{ display: 'grid', marginBottom: '40px' }}>
+        <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+          <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+            BILL TO
+          </h3>
+          <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+            {quote.customerName}
+          </p>
+          <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+            {billToAddress.length > 0 ? (
+              billToAddress.map((line, i) => <p key={i} style={{ margin: '0' }}>{line}</p>)
+            ) : (
+              <p style={{ margin: '0' }}>-</p>
+            )}
+          </div>
         </div>
-
-        {/* Bill To & Ship To Side by Side */}
-        <div className="mb-4">
-          <table className="w-full border-collapse text-xs">
-            <tbody>
-              <tr>
-                <td className="w-1/2 align-top p-3 border border-slate-400">
-                  <div className="font-bold mb-2">Bill To</div>
-                  <div className="space-y-1">
-                    <p className="font-semibold text-blue-600">{quote.customerName}</p>
-                    {quote.billingAddress && (
-                      <>
-                        {quote.billingAddress.street && <p>{quote.billingAddress.street}</p>}
-                        {(quote.billingAddress.city || quote.billingAddress.state) && (
-                          <p>
-                            {quote.billingAddress.city}
-                            {quote.billingAddress.city && quote.billingAddress.state && ', '}
-                            {quote.billingAddress.state}
-                          </p>
-                        )}
-                        {quote.billingAddress.pincode && <p>{quote.billingAddress.pincode}</p>}
-                        {quote.billingAddress.country && <p>{quote.billingAddress.country}</p>}
-                      </>
-                    )}
-                  </div>
-                </td>
-                <td className="w-1/2 align-top p-3 border border-slate-400 border-l-0">
-                  <div className="font-bold mb-2">Ship To</div>
-                  <div className="space-y-1">
-                    {quote.shippingAddress ? (
-                      <>
-                        <p className="font-semibold text-blue-600">{quote.customerName}</p>
-                        {quote.shippingAddress.street && <p>{quote.shippingAddress.street}</p>}
-                        {(quote.shippingAddress.city || quote.shippingAddress.state) && (
-                          <p>
-                            {quote.shippingAddress.city}
-                            {quote.shippingAddress.city && quote.shippingAddress.state && ', '}
-                            {quote.shippingAddress.state}
-                          </p>
-                        )}
-                        {quote.shippingAddress.pincode && <p>{quote.shippingAddress.pincode}</p>}
-                        {quote.shippingAddress.country && <p>{quote.shippingAddress.country}</p>}
-                      </>
-                    ) : (
-                      <>
-                        <p className="font-semibold text-blue-600">{quote.customerName}</p>
-                        {quote.billingAddress && (
-                          <>
-                            {quote.billingAddress.street && <p>{quote.billingAddress.street}</p>}
-                            {(quote.billingAddress.city || quote.billingAddress.state) && (
-                              <p>
-                                {quote.billingAddress.city}
-                                {quote.billingAddress.city && quote.billingAddress.state && ', '}
-                                {quote.billingAddress.state}
-                              </p>
-                            )}
-                            {quote.billingAddress.pincode && <p>{quote.billingAddress.pincode}</p>}
-                            {quote.billingAddress.country && <p>{quote.billingAddress.country}</p>}
-                          </>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+          <h3 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+            SHIP TO
+          </h3>
+          <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+            {quote.customerName}
+          </p>
+          <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+            {shipToAddress.length > 0 ? (
+              shipToAddress.map((line, i) => <p key={i} style={{ margin: '0' }}>{line}</p>)
+            ) : (
+              <p style={{ margin: '0' }}>-</p>
+            )}
+          </div>
         </div>
+      </div>
 
-        {/* Items Table */}
-        <table className="w-full border-collapse mb-4">
+      {/* Quote Metadata Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-[2px] mb-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-100" style={{
+        marginBottom: '40px',
+        backgroundColor: '#f1f5f9',
+        border: '1px solid #f1f5f9'
+      }}>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Quote Date</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{formatDate(quote.date)}</p>
+        </div>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Expiry Date</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#b91c1c', margin: '0' }}>
+            {quote.expiryDate ? formatDate(quote.expiryDate) : formatDate(new Date(new Date(quote.date).setDate(new Date(quote.date).getDate() + 30)).toISOString())}
+          </p>
+        </div>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Place of Supply</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{quote.billingAddress?.state || 'Maharashtra (27)'}</p>
+        </div>
+        <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+          <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Reference#</p>
+          <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{quote.referenceNumber || '-'}</p>
+        </div>
+      </div>
+
+      {/* Items Table */}
+      <div style={{ marginBottom: '32px', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px' }}>
           <thead>
-            <tr className="bg-slate-200">
-              <th className="border border-slate-400 px-2 py-2 text-left text-xs font-semibold">#</th>
-              <th className="border border-slate-400 px-2 py-2 text-left text-xs font-semibold">Item & Description</th>
-              <th className="border border-slate-400 px-2 py-2 text-center text-xs font-semibold">HSN/SAC</th>
-              <th className="border border-slate-400 px-2 py-2 text-center text-xs font-semibold">Qty</th>
-              <th className="border border-slate-400 px-2 py-2 text-right text-xs font-semibold">Rate</th>
-              <th className="border border-slate-400 px-2 py-2 text-right text-xs font-semibold">Amount</th>
+            <tr style={{ backgroundColor: '#1e40af', color: '#ffffff' }}>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', borderRadius: '4px 0 0 0' }}>#</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Item & Description</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Qty</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Rate</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderRadius: '0 4px 0 0' }}>Amount</th>
             </tr>
           </thead>
           <tbody>
-            {quote.items && quote.items.length > 0 ? (
-              quote.items.map((item: any, index: number) => (
-                <tr key={item.id || index}>
-                  <td className="border border-slate-400 px-2 py-2 text-xs">{index + 1}</td>
-                  <td className="border border-slate-400 px-2 py-2 text-xs">
-                    <p className="font-semibold">{item.name}</p>
-                    {item.description && <p className="text-slate-600 text-xs mt-0.5">{item.description}</p>}
-                  </td>
-                  <td className="border border-slate-400 px-2 py-2 text-center text-xs">{item.hsn || item.sac || '1000'}</td>
-                  <td className="border border-slate-400 px-2 py-2 text-center text-xs">
-                    {item.quantity} {item.unit || 'kg'}
-                  </td>
-                  <td className="border border-slate-400 px-2 py-2 text-right text-xs">
-                    {item.rate?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                  <td className="border border-slate-400 px-2 py-2 text-right text-xs font-semibold">
-                    {item.amount?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="border border-slate-400 px-2 py-3 text-center text-xs text-slate-500">No items available</td>
+            {(quote.items || []).map((item, index) => (
+              <tr key={item.id || index} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#64748b', verticalAlign: 'top' }}>{index + 1}</td>
+                <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{item.name}</p>
+                  {item.description && (
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0', lineHeight: '1.4' }}>{item.description}</p>
+                  )}
+                </td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'center', verticalAlign: 'top', fontWeight: '600' }}>{item.quantity}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top' }}>{formatCurrency(item.rate)}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top', fontWeight: '700' }}>{formatCurrency(item.amount)}</td>
               </tr>
-            )}
+            ))}
           </tbody>
         </table>
+      </div>
 
-        {/* Tax Summary and Total in Words */}
-        <div className="mb-4">
-          <table className="w-full border-collapse text-xs">
-            <tbody>
-              <tr>
-                <td className="w-1/2 align-top p-3 border border-slate-400">
-                  <div className="font-bold mb-2">Total In Words</div>
-                  <p className="text-xs leading-relaxed">{numberToWords(quote.total)}</p>
-                </td>
-                <td className="w-1/2 align-top p-0 border border-slate-400 border-l-0">
-                  <table className="w-full">
-                    <tbody>
-                      <tr>
-                        <td className="px-3 py-2 border-b border-slate-400">Sub Total</td>
-                        <td className="px-3 py-2 text-right border-b border-slate-400">
-                          {totals.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                      {totals.cgst > 0 && (
-                        <tr>
-                          <td className="px-3 py-2 border-b border-slate-400">CGST</td>
-                          <td className="px-3 py-2 text-right border-b border-slate-400">
-                            {totals.cgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      )}
-                      {totals.sgst > 0 && (
-                        <tr>
-                          <td className="px-3 py-2 border-b border-slate-400">SGST</td>
-                          <td className="px-3 py-2 text-right border-b border-slate-400">
-                            {totals.sgst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      )}
-                      {totals.igst > 0 && (
-                        <tr>
-                          <td className="px-3 py-2 border-b border-slate-400">IGST</td>
-                          <td className="px-3 py-2 text-right border-b border-slate-400">
-                            {totals.igst.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </td>
-                        </tr>
-                      )}
-                      <tr className="font-bold">
-                        <td className="px-3 py-2">Total</td>
-                        <td className="px-3 py-2 text-right">{totals.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Notes Section */}
-        {quote.customerNotes && (
-          <div className="mb-4 border border-slate-400 p-3">
-            <p className="text-xs font-bold mb-2">NOTES</p>
-            <p className="text-xs leading-relaxed whitespace-pre-wrap">{quote.customerNotes}</p>
-          </div>
-        )}
-
-        {/* Terms & Conditions */}
-        <div className="mb-4 border border-slate-400 p-3">
-          <p className="text-xs font-bold mb-2">TERMS & CONDITIONS</p>
-          {quote.termsAndConditions ? (
-            <p className="text-xs leading-relaxed whitespace-pre-wrap">{quote.termsAndConditions}</p>
-          ) : (
-            <div className="text-xs leading-relaxed space-y-1">
-              <p>Looking forward to your business.</p>
+      {/* Bottom Section: Notes and Summary */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8 md:gap-12 mb-10" style={{ marginBottom: '40px' }}>
+        {/* Notes & Terms */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {quote.customerNotes && (
+            <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+              <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                Customer Notes
+              </h4>
+              <p style={{ fontSize: '13px', color: '#475569', margin: '0', lineHeight: '1.6' }}>{quote.customerNotes}</p>
+            </div>
+          )}
+          {quote.termsAndConditions && (
+            <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+              <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                Terms & Conditions
+              </h4>
+              <div style={{ fontSize: '12px', color: '#475569', margin: '0', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                {quote.termsAndConditions}
+              </div>
             </div>
           )}
         </div>
 
-        {/* Signature Section */}
-        <div className="border-t-2 border-slate-800 pt-4">
-          <div className="flex justify-between items-end">
-            <div className="text-xs text-slate-600">
-              <p>Generated on: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })}, {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
-            </div>
-            <div className="text-right">
-              {branding?.signature?.url ? (
-                <div className="flex flex-col items-end">
-                  <img
-                    src={branding.signature.url}
-                    alt="Authorized Signature"
-                    style={{ maxWidth: '120px', maxHeight: '40px', objectFit: 'contain' }}
-                    className="mb-2"
-                  />
-                  <div className="text-xs font-semibold border-t border-slate-400 pt-1" style={{ width: '120px' }}>
-                    Authorized Signature
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <div style={{ width: '120px', height: '40px' }} className="mb-2"></div>
-                  <div className="text-xs font-semibold border-t border-slate-400 pt-1" style={{ width: '120px' }}>
-                    Authorized Signature
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Summary Table */}
+        <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', padding: '20px', border: '1px solid #f1f5f9', alignSelf: 'start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+            <span style={{ color: '#64748b', fontWeight: '600' }}>Sub Total</span>
+            <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(totals.subtotal)}</span>
           </div>
+          {totals.cgst > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+              <span style={{ color: '#64748b', fontWeight: '600' }}>CGST (9.0%)</span>
+              <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(totals.cgst)}</span>
+            </div>
+          )}
+          {totals.sgst > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+              <span style={{ color: '#64748b', fontWeight: '600' }}>SGST (9.0%)</span>
+              <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(totals.sgst)}</span>
+            </div>
+          )}
+          {totals.igst > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+              <span style={{ color: '#64748b', fontWeight: '600' }}>IGST (18.0%)</span>
+              <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(totals.igst)}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e2e8f0' }}>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>Total</span>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#1e40af' }}>{formatCurrency(totals.total)}</span>
+          </div>
+          <div style={{ marginTop: '16px', fontSize: '10px', color: '#64748b', fontStyle: 'italic', textAlign: 'right' }}>
+            {numberToWords(totals.total)}
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Section */}
+      <div style={{ marginTop: '64px', display: 'flex', justifyContent: 'flex-end', textAlign: 'center' }}>
+        <div>
+          {branding?.signature?.url ? (
+            <img
+              src={branding.signature.url}
+              alt="Signature"
+              style={{ maxHeight: '80px', maxWidth: '200px', objectFit: 'contain', marginBottom: '8px' }}
+            />
+          ) : (
+            <div style={{ height: '80px', width: '200px', borderBottom: '1px solid #e2e8f0', marginBottom: '8px' }}></div>
+          )}
+          <p style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '1px', margin: '0' }}>
+            Authorized Signature
+          </p>
         </div>
       </div>
     </div>
@@ -655,9 +606,9 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
           </TabsList>
         </div>
 
-        <TabsContent value="overview" className="flex-1 overflow-auto mt-0">
+        <TabsContent value="overview" className="flex-1 overflow-auto scrollbar-hide mt-0">
           <div className="flex h-full">
-            <div className="w-72 border-r border-slate-200 dark:border-slate-700 p-6 overflow-auto">
+            <div className="w-72 border-r border-slate-200 dark:border-slate-700 p-6 overflow-auto scrollbar-hide">
               <div className="space-y-6">
                 <div>
                   <p className="text-xs text-slate-500 uppercase font-semibold mb-2">Quote Info</p>
@@ -712,11 +663,19 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
               </div>
             </div>
 
-            <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-6 overflow-auto">
+            <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-6 overflow-auto scrollbar-hide">
               {showPdfView ? (
-                <div className="max-w-4xl mx-auto shadow-lg bg-white ring-1 ring-slate-200">
-                  <div id="estimate-pdf-content" className="bg-white" style={{ width: '210mm', minHeight: '297mm' }}>
-                    <QuotePDFView quote={quote} branding={branding} organization={organization} />
+                <div className="w-full flex justify-center">
+                  <div className="w-full max-w-[210mm] shadow-lg bg-white ring-1 ring-slate-200">
+                    <div id="estimate-pdf-content" className="bg-white w-full" style={{
+                      minHeight: '296mm',
+                      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                      color: '#0f172a',
+                      padding: '40px',
+                      boxSizing: 'border-box'
+                    }}>
+                      <QuotePDFView quote={quote} branding={branding} organization={organization} />
+                    </div>
                   </div>
                 </div>
               ) : (
@@ -757,7 +716,7 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
           </div>
         </TabsContent>
 
-        <TabsContent value="comments" className="flex-1 overflow-auto mt-0">
+        <TabsContent value="comments" className="flex-1 overflow-auto scrollbar-hide mt-0">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="h-12 w-12 rounded-full bg-slate-100 mb-3 flex items-center justify-center">
               <MessageSquare className="h-6 w-6 text-slate-400" />
@@ -766,7 +725,7 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
           </div>
         </TabsContent>
 
-        <TabsContent value="transactions" className="flex-1 overflow-auto mt-0">
+        <TabsContent value="transactions" className="flex-1 overflow-auto scrollbar-hide mt-0">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="h-12 w-12 rounded-full bg-slate-100 mb-3 flex items-center justify-center">
               <History className="h-6 w-6 text-slate-400" />
@@ -775,7 +734,7 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
           </div>
         </TabsContent>
 
-        <TabsContent value="mails" className="flex-1 overflow-auto mt-0">
+        <TabsContent value="mails" className="flex-1 overflow-auto scrollbar-hide mt-0">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="h-12 w-12 rounded-full bg-slate-100 mb-3 flex items-center justify-center">
               <Mail className="h-6 w-6 text-slate-400" />
@@ -784,7 +743,7 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
           </div>
         </TabsContent>
 
-        <TabsContent value="activity" className="flex-1 overflow-auto mt-0">
+        <TabsContent value="activity" className="flex-1 overflow-auto scrollbar-hide mt-0">
           <div className="p-6">
             {quote.activityLogs && quote.activityLogs.length > 0 ? (
               <div className="space-y-4">
@@ -813,7 +772,7 @@ function QuoteDetailPanel({ quote, onClose, onEdit, onDelete, onConvert, onClone
           </div>
         </TabsContent>
 
-        <TabsContent value="statement" className="flex-1 overflow-auto mt-0">
+        <TabsContent value="statement" className="flex-1 overflow-auto scrollbar-hide mt-0">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="h-12 w-12 rounded-full bg-slate-100 mb-3 flex items-center justify-center">
               <FileDown className="h-6 w-6 text-slate-400" />
@@ -993,25 +952,28 @@ export default function Estimates() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="estimates-layout">
+      <ResizablePanelGroup key={selectedQuote ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
-          defaultSize={selectedQuote ? 40 : 100}
-          minSize={40}
-          className="flex flex-col h-full overflow-hidden bg-white border-r border-slate-200"
+          defaultSize={selectedQuote ? 33 : 100}
+          minSize={selectedQuote ? 33 : 100}
+          maxSize={selectedQuote ? 33 : 100}
+          className="flex flex-col h-full overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
         >
           <div className="flex flex-col h-full overflow-hidden">
-            <div className={`flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 ${selectedQuote ? 'h-[73px]' : 'h-[73px] md:h-auto'}`}>
+            <div className={`flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto`}>
               <div className="flex items-center gap-4 flex-1">
                 <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
                   <DropdownMenu open={filterDropdownOpen} onOpenChange={setFilterDropdownOpen}>
                     <DropdownMenuTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="gap-1.5 text-xl font-semibold text-slate-900 dark:text-white p-0 h-auto hover:bg-transparent"
+                        className="gap-1.5 text-xl font-semibold text-slate-900 dark:text-white p-0 h-auto hover:bg-transparent text-left whitespace-normal"
                         data-testid="button-filter-dropdown"
                       >
-                        {getFilterLabel()}
-                        <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${filterDropdownOpen ? 'rotate-180' : ''}`} />
+                        <span className="line-clamp-2">
+                          {getFilterLabel()}
+                        </span>
+                        <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform shrink-0 ${filterDropdownOpen ? 'rotate-180' : ''}`} />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-64">
@@ -1044,40 +1006,75 @@ export default function Estimates() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-
-                <div className="relative flex-1 max-w-[240px] hidden sm:block">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search quotes..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 h-9"
-                    data-testid="input-search-header"
-                  />
-                </div>
               </div>
 
               <div className="flex items-center gap-2">
-                {selectedQuote && (
-                  <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-500">
-                    <Search className="h-4 w-4" />
-                  </Button>
+                {selectedQuote ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search quotes..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-header"
+                    />
+                  </div>
                 )}
                 <Button
                   onClick={() => setLocation("/estimates/create")}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className={`bg-blue-600 hover:bg-blue-700 h-9 ${selectedQuote ? 'w-9 px-0' : ''}`}
                   data-testid="button-new-quote"
+                  size={selectedQuote ? "icon" : "default"}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Quote
+                  <Plus className={`h-4 w-4 ${selectedQuote ? '' : 'mr-2'}`} />
+                  {!selectedQuote && "New Quote"}
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="icon" className="h-9 w-9 bg-[#ebebeb] text-[#101c2e] hover-elevate active-elevate-2" data-testid="button-more-options">
+                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span>Sort by</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Date</DropdownMenuItem>
+                          <DropdownMenuItem>Quote Number</DropdownMenuItem>
+                          <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                          <DropdownMenuItem>Amount</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={fetchQuotes} className="flex items-center cursor-pointer mb-1">
                       <RefreshCw className="mr-2 h-4 w-4 text-slate-500" />
                       <span className="text-slate-700">Refresh List</span>
@@ -1087,8 +1084,8 @@ export default function Estimates() {
               </div>
             </div>
 
-            <div className={`flex flex-col flex-grow min-h-0 overflow-hidden ${selectedQuote ? 'p-0' : 'p-4 pb-0'}`}>
-              <div className="flex-1 overflow-auto scrollbar-hide pb-4">
+            <div className={`flex flex-col flex-grow min-h-0 overflow-hidden`}>
+              <div className="flex-1 overflow-auto scrollbar-hide">
                 {loading ? (
                   <div className="p-8 text-center text-slate-500">Loading quotes...</div>
                 ) : selectedQuote ? (
@@ -1143,12 +1140,11 @@ export default function Estimates() {
                             }}
                           />
                         </th>
-                        <th className="px-3 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-tight border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]">Date</th>
-                        <th className="px-3 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-tight border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]">Quote Number</th>
-                        <th className="px-3 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-tight border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]">Reference#</th>
-                        <th className="px-3 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-tight border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]">Customer Name</th>
-                        <th className="px-3 py-4 text-left text-[11px] font-bold text-slate-500 uppercase tracking-tight border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]">Status</th>
-                        <th className="px-3 py-4 text-right text-[11px] font-bold text-slate-500 uppercase tracking-tight border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]">Amount</th>
+                        <th className="px-3 py-4 text-left font-semibold">Date</th>
+                        <th className="px-3 py-4 text-left font-semibold">Quote Number</th>
+                        <th className="px-3 py-4 text-left font-semibold">Customer Name</th>
+                        <th className="px-3 py-4 text-left font-semibold">Status</th>
+                        <th className="px-3 py-4 text-right font-semibold">Amount</th>
                         <th className="w-10 px-3 py-4 border-b border-slate-200 bg-slate-50/50 dark:bg-slate-800/50 shadow-[0_1px_0_rgba(0,0,0,0.05)]"></th>
                       </tr>
                     </thead>
@@ -1225,7 +1221,7 @@ export default function Estimates() {
         {selectedQuote && (
           <>
             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
               <div className="h-full flex flex-col overflow-hidden bg-white">
                 <QuoteDetailPanel
                   quote={selectedQuote}

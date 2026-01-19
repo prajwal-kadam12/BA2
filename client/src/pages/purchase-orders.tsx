@@ -10,7 +10,8 @@ import {
 import {
   Plus, Search, ChevronDown, MoreHorizontal, Pencil, Trash2,
   X, Mail, FileText, Printer, ArrowRight, Filter, Download,
-  ClipboardList, Eye, Check, Calendar, XCircle, Copy, Archive
+  ClipboardList, Eye, Check, Calendar, XCircle, Copy, Archive,
+  ArrowUpDown, RefreshCw
 } from "lucide-react";
 import { robustIframePrint } from "@/lib/robust-print";
 import { generatePDFFromElement } from "@/lib/pdf-utils";
@@ -32,6 +33,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
@@ -120,24 +125,27 @@ function PurchaseOrderPDFView({ purchaseOrder, branding, organization }: { purch
   const blueThemeColor = '#1d4ed8'; // Blue-700
 
   return (
-    <div className="max-w-4xl mx-auto shadow-lg bg-white my-8">
+    <div className="mx-auto shadow-lg bg-white my-8 w-full max-w-[210mm]">
       <div
-        className="bg-white border border-slate-200"
         id="purchase-order-pdf-content"
+        className="bg-white border border-slate-200"
         style={{
           backgroundColor: 'white',
           padding: '40px',
-          width: '210mm',
-          minHeight: '297mm',
+          width: '100%',
+          maxWidth: '210mm',
+          minHeight: '316mm',
           margin: '0 auto',
-          fontFamily: 'serif',
-          color: '#1e293b'
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+          color: '#0f172a',
+          boxSizing: 'border-box',
+          lineHeight: '1.5'
         }}
       >
         {/* Header Section with Organization Info */}
         <PurchasePDFHeader
           logo={branding?.logo}
-          documentTitle="Purchase Order"
+          documentTitle="PURCHASE ORDER"
           documentNumber={purchaseOrder.purchaseOrderNumber || 'PO-00001'}
           date={purchaseOrder.date}
           referenceNumber={purchaseOrder.referenceNumber}
@@ -145,58 +153,89 @@ function PurchaseOrderPDFView({ purchaseOrder, branding, organization }: { purch
         />
 
         {/* Vendor Section */}
-        <div style={{ marginBottom: '30px' }}>
-          <h4 style={{ fontSize: '12px', color: '#64748b', marginBottom: '5px', fontWeight: 'normal' }}>Vendor Address</h4>
-          <p style={{ fontSize: '12px', color: blueThemeColor, fontWeight: 'bold', margin: '0 0 2px 0', textTransform: 'uppercase' }}>{purchaseOrder.vendorName}</p>
-          <div style={{ fontSize: '11px', color: '#475569', lineHeight: '1.4' }}>
-            {purchaseOrder.vendorAddress?.street1 && <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress.street1}</p>}
-            {purchaseOrder.vendorAddress?.city && <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress.city}</p>}
-            <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress?.pinCode || '411057'}, {purchaseOrder.vendorAddress?.state || 'Maharashtra'}</p>
-            <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress?.countryRegion || 'India'}</p>
-            <p style={{ margin: 0 }}>GSTIN {purchaseOrder.vendorAddress?.gstin || '27AAMCC3732G1ZN'}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-10" style={{ display: 'grid', marginBottom: '40px' }}>
+          <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+            <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+              VENDOR
+            </h4>
+            <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+              {purchaseOrder.vendorName}
+            </p>
+            <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+              {purchaseOrder.vendorAddress?.street1 && <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress.street1}</p>}
+              {purchaseOrder.vendorAddress?.city && <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress.city}</p>}
+              <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress?.pinCode || '411057'}, {purchaseOrder.vendorAddress?.state || 'Maharashtra'}</p>
+              <p style={{ margin: 0 }}>{purchaseOrder.vendorAddress?.countryRegion || 'India'}</p>
+              {purchaseOrder.vendorAddress?.gstin && <p style={{ margin: '4px 0 0 0', fontWeight: '600', color: '#991b1b' }}>GSTIN {purchaseOrder.vendorAddress.gstin}</p>}
+            </div>
+          </div>
+          <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+            <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+              SHIP TO
+            </h4>
+            <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+              {organization?.name || 'Your Company'}
+            </p>
+            <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
+              <p style={{ margin: '0' }}>{organization?.street1 || ''} {organization?.city || ''}</p>
+            </div>
           </div>
         </div>
 
-        {/* Date/Ref Section */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '20px', fontSize: '11px' }}>
-          <div style={{ display: 'flex', width: '150px', justifyContent: 'space-between', marginBottom: '5px' }}>
-            <span style={{ color: '#64748b' }}>Date :</span>
-            <span>{formatDate(purchaseOrder.date)}</span>
+        {/* Metadata section transformed to a bar for consistency */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-[2px] mb-10 bg-slate-100 rounded-lg overflow-hidden border border-slate-100" style={{
+          marginBottom: '40px',
+          backgroundColor: '#f1f5f9',
+          border: '1px solid #f1f5f9'
+        }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Order Date</p>
+            <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{formatDate(purchaseOrder.date)}</p>
           </div>
-          <div style={{ display: 'flex', width: '150px', justifyContent: 'space-between' }}>
-            <span style={{ color: '#64748b' }}>Ref# :</span>
-            <span>{purchaseOrder.referenceNumber || 'SO-00001'}</span>
+          <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Expected Delivery</p>
+            <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{formatDate(purchaseOrder.expectedShipmentDate)}</p>
+          </div>
+          <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Payment Terms</p>
+            <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{purchaseOrder.paymentTerms || 'Due on Receipt'}</p>
+          </div>
+          <div style={{ backgroundColor: '#ffffff', padding: '16px' }}>
+            <p style={{ fontSize: '10px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 4px 0' }}>Ref#</p>
+            <p style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a', margin: '0' }}>{purchaseOrder.referenceNumber || '-'}</p>
           </div>
         </div>
 
         {/* Table Section */}
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px' }}>
-          <thead>
-            <tr style={{ backgroundColor: redThemeColor, color: 'white' }}>
-              <th style={{ padding: '8px', textAlign: 'center', fontSize: '11px', width: '30px', fontWeight: 'bold' }}>#</th>
-              <th style={{ padding: '8px', textAlign: 'left', fontSize: '11px', fontWeight: 'bold' }}>Item & Description</th>
-              <th style={{ padding: '8px', textAlign: 'center', fontSize: '11px', width: '80px', fontWeight: 'bold' }}>HSN/SAC</th>
-              <th style={{ padding: '8px', textAlign: 'center', fontSize: '11px', width: '60px', fontWeight: 'bold' }}>Qty</th>
-              <th style={{ padding: '8px', textAlign: 'right', fontSize: '11px', width: '100px', fontWeight: 'bold' }}>Rate</th>
-              <th style={{ padding: '8px', textAlign: 'right', fontSize: '11px', width: '100px', fontWeight: 'bold' }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            {purchaseOrder.items.map((item, index) => (
-              <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top' }}>{index + 1}</td>
-                <td style={{ padding: '15px 8px', verticalAlign: 'top' }}>
-                  <p style={{ fontSize: '11px', fontWeight: 'bold', margin: '0 0 5px 0' }}>{item.itemName}</p>
-                  <p style={{ fontSize: '9px', color: '#64748b', margin: 0, textTransform: 'uppercase' }}>{item.description}</p>
-                </td>
-                <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top', color: '#64748b' }}>{(item as any).hsnSac || '998315'}</td>
-                <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top' }}>{item.quantity.toFixed(2)}</td>
-                <td style={{ padding: '15px 8px', textAlign: 'right', fontSize: '11px', verticalAlign: 'top' }}>{item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
-                <td style={{ padding: '15px 8px', textAlign: 'right', fontSize: '11px', verticalAlign: 'top' }}>{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+        <div style={{ marginBottom: '20px', overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', minWidth: '500px' }}>
+            <thead>
+              <tr style={{ backgroundColor: redThemeColor, color: 'white' }}>
+                <th style={{ padding: '8px', textAlign: 'center', fontSize: '11px', width: '30px', fontWeight: 'bold' }}>#</th>
+                <th style={{ padding: '8px', textAlign: 'left', fontSize: '11px', fontWeight: 'bold' }}>Item & Description</th>
+                <th style={{ padding: '8px', textAlign: 'center', fontSize: '11px', width: '80px', fontWeight: 'bold' }}>HSN/SAC</th>
+                <th style={{ padding: '8px', textAlign: 'center', fontSize: '11px', width: '60px', fontWeight: 'bold' }}>Qty</th>
+                <th style={{ padding: '8px', textAlign: 'right', fontSize: '11px', width: '100px', fontWeight: 'bold' }}>Rate</th>
+                <th style={{ padding: '8px', textAlign: 'right', fontSize: '11px', width: '100px', fontWeight: 'bold' }}>Amount</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {purchaseOrder.items.map((item, index) => (
+                <tr key={item.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top' }}>{index + 1}</td>
+                  <td style={{ padding: '15px 8px', verticalAlign: 'top' }}>
+                    <p style={{ fontSize: '11px', fontWeight: 'bold', margin: '0 0 5px 0' }}>{item.itemName}</p>
+                    <p style={{ fontSize: '9px', color: '#64748b', margin: 0, textTransform: 'uppercase' }}>{item.description}</p>
+                  </td>
+                  <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top', color: '#64748b' }}>{(item as any).hsnSac || '998315'}</td>
+                  <td style={{ padding: '15px 8px', textAlign: 'center', fontSize: '11px', verticalAlign: 'top' }}>{item.quantity.toFixed(2)}</td>
+                  <td style={{ padding: '15px 8px', textAlign: 'right', fontSize: '11px', verticalAlign: 'top' }}>{item.rate.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                  <td style={{ padding: '15px 8px', textAlign: 'right', fontSize: '11px', verticalAlign: 'top' }}>{item.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {/* Totals Section */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '40px' }}>
@@ -233,8 +272,8 @@ function PurchaseOrderPDFView({ purchaseOrder, branding, organization }: { purch
             {branding?.signature?.url ? (
               <img src={branding.signature.url} alt="Signature" style={{ maxWidth: '150px', maxHeight: '80px', objectFit: 'contain' }} />
             ) : (
-              <div style={{ textAlign: 'center', color: '#1e293b', paddingTop: '20px' }}>
-                <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, borderBottom: '1px solid #1e293b', paddingBottom: '2px', display: 'inline-block' }}>SKILLTONIT</p>
+              <div style={{ textAlign: 'center', color: '#1e313b', paddingTop: '20px' }}>
+                <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, borderBottom: '1px solid #1e313b', paddingBottom: '2px', display: 'inline-block' }}>SKILLTONIT</p>
               </div>
             )}
           </div>
@@ -506,10 +545,10 @@ function PurchaseOrderDetailPanel({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-2">
+      <div className="flex-1 overflow-auto scrollbar-hide p-2">
         <div ref={pdfRef} className="w-full">
           {showPdfView ? (
-            <div className="w-full">
+            <div className="w-full flex justify-center">
               <PurchaseOrderPDFView purchaseOrder={purchaseOrder} branding={branding} />
             </div>
           ) : (
@@ -593,6 +632,7 @@ export default function PurchaseOrders() {
   const [poToDelete, setPoToDelete] = useState<string | null>(null);
   const [selectedPOs, setSelectedPOs] = useState<string[]>([]);
   const [branding, setBranding] = useState<any>(null);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   // Use organization context instead of local state
   const { currentOrganization: organization } = useOrganization();
@@ -601,6 +641,18 @@ export default function PurchaseOrders() {
     fetchPurchaseOrders();
     fetchBranding();
   }, []);
+
+  // Deep linking for selected purchase order
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const poId = searchParams.get('id');
+    if (poId && purchaseOrders.length > 0) {
+      const po = purchaseOrders.find(p => p.id === poId);
+      if (po) {
+        fetchPODetail(po.id);
+      }
+    }
+  }, [purchaseOrders]);
 
   const fetchBranding = async () => {
     try {
@@ -920,25 +972,63 @@ export default function PurchaseOrders() {
 
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="purchase-orders-layout">
+      <ResizablePanelGroup key={selectedPO ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
           defaultSize={selectedPO ? 30 : 100}
-          minSize={20}
-          className="flex flex-col overflow-hidden bg-white"
+          minSize={selectedPO ? 30 : 100}
+          maxSize={selectedPO ? 30 : 100}
+          className="flex flex-col overflow-hidden bg-white min-w-[25%]"
         >
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold text-slate-900">All Purchase Orders</h1>
-                <ChevronDown className="h-4 w-4 text-slate-500" />
+                <h1 className="text-xl font-semibold text-slate-900 line-clamp-2">All Purchase Orders</h1>
+                <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
               </div>
               <div className="flex items-center gap-2">
+                {selectedPO ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search purchase orders..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-po"
+                    />
+                  </div>
+                )}
                 <Button
                   onClick={() => setLocation("/purchase-orders/new")}
-                  className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-9"
+                  className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedPO ? 'w-9 px-0' : ''}`}
                   data-testid="button-new-po"
+                  size={selectedPO ? "icon" : "default"}
                 >
-                  <Plus className="h-4 w-4" /> New
+                  <Plus className={`h-4 w-4 ${selectedPO ? '' : 'mr-1.5'}`} />
+                  {!selectedPO && "New"}
                 </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -946,12 +1036,27 @@ export default function PurchaseOrders() {
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span>Sort by</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Date</DropdownMenuItem>
+                          <DropdownMenuItem>Order Number</DropdownMenuItem>
+                          <DropdownMenuItem>Vendor Name</DropdownMenuItem>
+                          <DropdownMenuItem>Amount</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem>
                       <Download className="mr-2 h-4 w-4" /> Export
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={fetchPurchaseOrders}>
-                      Refresh List
+                      <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -976,7 +1081,7 @@ export default function PurchaseOrders() {
               </div>
             )}
 
-            <div className="flex-1 overflow-auto">
+            <div className="flex-1 overflow-auto scrollbar-hide">
               {loading ? (
                 <div className="flex items-center justify-center py-16">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -998,7 +1103,7 @@ export default function PurchaseOrders() {
                     <Plus className="h-4 w-4 mr-2" /> Create Your First Purchase Order
                   </Button>
                 </div>
-              ) : (selectedPO as PurchaseOrder | null) ? (
+              ) : selectedPO ? (
                 <div className="divide-y divide-slate-100 bg-white">
                   {paginatedItems.map((po) => (
                     <div
@@ -1039,7 +1144,7 @@ export default function PurchaseOrders() {
                   ))}
                 </div>
               ) : (
-                <div className="p-4">
+                <div className="flex-1 overflow-auto scrollbar-hide">
                   <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900">
                     <div className="overflow-x-auto">
                       <table className="w-full">
@@ -1058,14 +1163,14 @@ export default function PurchaseOrders() {
                                 data-testid="checkbox-select-all"
                               />
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Purchase Order#</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Reference#</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Vendor Name</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Billed Status</th>
-                            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
-                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Delivery Date</th>
+                            <th className="px-4 py-3 text-left font-semibold">Date</th>
+                            <th className="px-4 py-3 text-left font-semibold">Purchase Order#</th>
+                            <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference#</th>
+                            <th className="px-4 py-3 text-left font-semibold">Vendor Name</th>
+                            <th className="px-4 py-3 text-left font-semibold">Status</th>
+                            <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Billed Status</th>
+                            <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                            <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Delivery Date</th>
                             <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider"><Search className="h-3 w-3 inline-block" /></th>
                           </tr>
                         </thead>
@@ -1167,7 +1272,7 @@ export default function PurchaseOrders() {
         {selectedPO && (
           <>
             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
               <PurchaseOrderDetailPanel
                 purchaseOrder={selectedPO}
                 onClose={handleClosePanel}

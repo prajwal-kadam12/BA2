@@ -5,6 +5,19 @@ import { jsPDF } from "jspdf";
 import { useOrganization } from "@/context/OrganizationContext";
 import { SalesPDFHeader } from "@/components/sales-pdf-header";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuPortal,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
+import {
+  RefreshCw,
+  ArrowUpDown,
   Plus,
   Search,
   Filter,
@@ -17,29 +30,14 @@ import {
   FileText,
   Printer,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Download,
+  Settings
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { robustIframePrint } from "@/lib/robust-print";
-import { Button } from "@/components/ui/button";
 import { usePagination } from "@/hooks/use-pagination";
 import { TablePagination } from "@/components/table-pagination";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@/components/ui/resizable";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +48,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
 interface CreditNoteListItem {
@@ -151,132 +161,178 @@ const getStatusBadgeStyles = (status: string) => {
 
 function CreditNotePdfPreview({ creditNote, branding, organization }: { creditNote: CreditNoteDetail; branding?: any; organization?: any }) {
   return (
-    <div id="credit-note-pdf-content" className="bg-white max-w-4xl mx-auto" style={{ fontFamily: 'Arial, sans-serif' }}>
-      <div className="max-w-3xl mx-auto">
-        <div className="relative mb-8">
-          {creditNote.status === 'CLOSED' && (
-            <div className="absolute top-0 left-0 transform -rotate-12">
-              <span className="inline-block bg-green-500 text-white px-4 py-1 text-sm font-bold rounded">CLOSED</span>
-            </div>
-          )}
-          <SalesPDFHeader
-            organization={organization}
-            logo={branding?.logo}
-            documentTitle="CREDIT NOTE"
-            documentNumber={creditNote.creditNoteNumber}
-            date={creditNote.date}
-          />
-        </div>
+    <div id="credit-note-pdf-content" className="bg-white w-full max-w-[210mm] mx-auto" style={{
+      fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      color: '#0f172a',
+      padding: '40px',
+      margin: '0',
+      minHeight: '316mm',
+      boxSizing: 'border-box',
+      lineHeight: '1.5'
+    }}>
+      {/* Header Section */}
+      <div style={{ marginBottom: '40px' }}>
+        <SalesPDFHeader
+          organization={organization}
+          logo={branding?.logo}
+          documentTitle="CREDIT NOTE"
+          documentNumber={creditNote.creditNoteNumber}
+          date={creditNote.date}
+        />
+      </div>
 
-        <div className="grid grid-cols-2 gap-8 mb-6">
-          <div>
-            <div className="text-sm mb-2">
-              <span className="text-gray-500">#</span>
-              <span className="ml-2 font-medium">{creditNote.creditNoteNumber}</span>
-            </div>
-            <div className="text-sm mb-2">
-              <span className="text-gray-500">Credit Date</span>
-              <span className="ml-2">: {formatDate(creditNote.date)}</span>
-            </div>
-            <div className="text-sm">
-              <span className="text-gray-500">Ref</span>
-              <span className="ml-2">: {creditNote.referenceNumber || '-'}</span>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-sm mb-2">
-              <span className="text-gray-500">Place Of Supply</span>
-              <span className="ml-2">{creditNote.placeOfSupply || '-'}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mb-6">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">Bill To</h3>
-          <p className="font-semibold text-blue-600">{creditNote.customerName}</p>
-          <div className="text-sm text-gray-600">
+      {/* Details Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-[1.5fr_1fr] gap-8 md:gap-12 mb-10">
+        <div style={{ borderLeft: '3px solid #f1f5f9', paddingLeft: '20px' }}>
+          <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+            BILL TO
+          </h4>
+          <p style={{ fontSize: '18px', fontWeight: '900', color: '#0f172a', marginBottom: '6px', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
+            {creditNote.customerName}
+          </p>
+          <div style={{ fontSize: '13px', color: '#475569', lineHeight: '1.6' }}>
             {formatAddress(creditNote.billingAddress).map((line, i) => (
-              <p key={i}>{line}</p>
+              <p key={i} style={{ margin: '0' }}>{line}</p>
             ))}
+            {creditNote.gstin && <p style={{ margin: '4px 0 0 0', fontWeight: '600', color: '#1e40af' }}>GSTIN: {creditNote.gstin}</p>}
           </div>
-          {creditNote.gstin && <p className="text-sm text-gray-600">GSTIN: {creditNote.gstin}</p>}
         </div>
 
-        <table className="w-full mb-6 text-sm">
+        <div>
+          <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '12px', margin: '0 0 12px 0' }}>
+            CREDIT NOTE DETAILS
+          </h4>
+          <div style={{
+            backgroundColor: '#f8fafc',
+            borderRadius: '8px',
+            padding: '16px',
+            border: '1px solid #f1f5f9'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Date</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>{formatDate(creditNote.date)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: '8px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Reference#</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>{creditNote.referenceNumber || '-'}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Place of Supply</span>
+              <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>{creditNote.placeOfSupply || '-'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Items Table */}
+      <div style={{ marginBottom: '32px', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '500px' }}>
           <thead>
-            <tr className="bg-gray-100 border-b border-gray-300">
-              <th className="px-3 py-2 text-left font-semibold">#</th>
-              <th className="px-3 py-2 text-left font-semibold">Item & Description</th>
-              <th className="px-3 py-2 text-left font-semibold">HSN/SAC</th>
-              <th className="px-3 py-2 text-right font-semibold">Qty</th>
-              <th className="px-3 py-2 text-right font-semibold">Rate</th>
-              <th className="px-3 py-2 text-right font-semibold">Amount</th>
+            <tr style={{ backgroundColor: '#1e40af', color: '#ffffff' }}>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', borderRadius: '4px 0 0 0' }}>#</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Item & Description</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Qty</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Rate</th>
+              <th style={{ padding: '12px 16px', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', borderRadius: '0 4px 0 0' }}>Amount</th>
             </tr>
           </thead>
           <tbody>
             {creditNote.items.map((item, index) => (
-              <tr key={item.id} className="border-b border-gray-200">
-                <td className="px-3 py-2">{index + 1}</td>
-                <td className="px-3 py-2">
-                  <p className="font-medium">{item.name}</p>
-                  {item.description && <p className="text-gray-600 text-xs">{item.description}</p>}
+              <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#64748b', verticalAlign: 'top' }}>{index + 1}</td>
+                <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                  <p style={{ fontSize: '14px', fontWeight: '700', color: '#0f172a', margin: '0 0 4px 0' }}>{item.name}</p>
+                  {item.description && (
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '0', lineHeight: '1.4' }}>{item.description}</p>
+                  )}
                 </td>
-                <td className="px-3 py-2">-</td>
-                <td className="px-3 py-2 text-right">{item.quantity}</td>
-                <td className="px-3 py-2 text-right">{formatCurrency(item.rate)}</td>
-                <td className="px-3 py-2 text-right font-medium">{formatCurrency(item.amount)}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'center', verticalAlign: 'top', fontWeight: '600' }}>{item.quantity}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top' }}>{formatCurrency(item.rate)}</td>
+                <td style={{ padding: '16px', fontSize: '13px', color: '#0f172a', textAlign: 'right', verticalAlign: 'top', fontWeight: '700' }}>{formatCurrency(item.amount)}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
 
-        <div className="flex justify-end mb-8">
-          <div className="w-72">
-            <div className="flex justify-between py-2 border-b border-gray-200">
-              <span className="text-gray-600">Sub Total</span>
-              <span className="font-medium">{formatCurrency(creditNote.subTotal)}</span>
+      {/* Summary Section */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_320px] gap-8 md:gap-12">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {creditNote.customerNotes && (
+            <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+              <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                Customer Notes
+              </h4>
+              <p style={{ fontSize: '13px', color: '#475569', margin: '0', lineHeight: '1.6' }}>{creditNote.customerNotes}</p>
             </div>
-            {creditNote.cgst > 0 && (
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="text-gray-600">CGST 9%</span>
-                <span className="font-medium">{formatCurrency(creditNote.cgst)}</span>
+          )}
+          {creditNote.termsAndConditions && (
+            <div style={{ backgroundColor: '#fdfdfd', padding: '16px', borderRadius: '4px', borderLeft: '4px solid #cbd5e1' }}>
+              <h4 style={{ fontSize: '11px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', margin: '0 0 8px 0' }}>
+                Terms & Conditions
+              </h4>
+              <div style={{ fontSize: '12px', color: '#475569', margin: '0', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                {creditNote.termsAndConditions}
               </div>
-            )}
-            {creditNote.sgst > 0 && (
-              <div className="flex justify-between py-2 border-b border-gray-200">
-                <span className="text-gray-600">SGST 9%</span>
-                <span className="font-medium">{formatCurrency(creditNote.sgst)}</span>
-              </div>
-            )}
-            <div className="flex justify-between py-3 font-bold">
-              <span>Total</span>
-              <span>{formatCurrency(creditNote.total)}</span>
             </div>
-            <div className="flex justify-between py-2 bg-amber-50 px-2">
-              <span className="font-medium">Credits Remaining</span>
-              <span className="font-bold text-amber-600">{formatCurrency(creditNote.creditsRemaining)}</span>
-            </div>
-          </div>
+          )}
         </div>
 
-        <div className="mt-12 pt-4 text-right text-sm text-gray-500">
-          {branding?.signature?.url ? (
-            <div className="flex flex-col items-end gap-2">
-              <img
-                src={branding.signature.url}
-                alt="Authorized Signature"
-                style={{ maxWidth: '180px', maxHeight: '60px', objectFit: 'contain' }}
-              />
-              <p className="text-xs">Authorized Signature</p>
+        <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', padding: '20px', border: '1px solid #f1f5f9', alignSelf: 'start' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+            <span style={{ color: '#64748b', fontWeight: '600' }}>Sub Total</span>
+            <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(creditNote.subTotal)}</span>
+          </div>
+          {creditNote.cgst > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+              <span style={{ color: '#64748b', fontWeight: '600' }}>CGST (9.0%)</span>
+              <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(creditNote.cgst)}</span>
             </div>
-          ) : (
-            <p>Authorized Signature ____________________</p>
           )}
+          {creditNote.sgst > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+              <span style={{ color: '#64748b', fontWeight: '600' }}>SGST (9.0%)</span>
+              <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(creditNote.sgst)}</span>
+            </div>
+          )}
+          {creditNote.igst > 0 && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px' }}>
+              <span style={{ color: '#64748b', fontWeight: '600' }}>IGST (18.0%)</span>
+              <span style={{ color: '#0f172a', fontWeight: '700' }}>{formatCurrency(creditNote.igst)}</span>
+            </div>
+          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', paddingTop: '16px', borderTop: '2px solid #e2e8f0', marginBottom: '12px' }}>
+            <span style={{ fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>Total</span>
+            <span style={{ fontSize: '18px', fontWeight: '800', color: '#2563eb' }}>{formatCurrency(creditNote.total)}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px', backgroundColor: '#fffbeb', borderRadius: '4px', border: '1px solid #fde68a' }}>
+            <span style={{ fontSize: '12px', fontWeight: '700', color: '#92400e' }}>Credits Remaining</span>
+            <span style={{ fontSize: '13px', fontWeight: '800', color: '#b45309' }}>{formatCurrency(creditNote.creditsRemaining)}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Section */}
+      <div style={{ marginTop: '64px', display: 'flex', justifyContent: 'flex-end', textAlign: 'center' }}>
+        <div>
+          {branding?.signature?.url ? (
+            <img
+              src={branding.signature.url}
+              alt="Signature"
+              style={{ maxHeight: '80px', maxWidth: '200px', objectFit: 'contain', marginBottom: '8px' }}
+            />
+          ) : (
+            <div style={{ height: '80px', width: '200px', borderBottom: '1px solid #e2e8f0', marginBottom: '8px' }}></div>
+          )}
+          <p style={{ fontSize: '12px', fontWeight: '700', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '1px', margin: '0' }}>
+            Authorized Signature
+          </p>
         </div>
       </div>
     </div>
   );
 }
+
 
 interface CreditNoteDetailPanelProps {
   creditNote: CreditNoteDetail;
@@ -417,7 +473,7 @@ function CreditNoteDetailPanel({ creditNote, branding, organization, onClose, on
 
 
   return (
-    <div className="h-full flex flex-col bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-sm">
+    <div className="h-full flex flex-col bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 shadow-sm min-h-0">
       <div className="flex items-center justify-between px-4 py-2 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
         <h2 className="text-sm font-semibold text-slate-900 dark:text-white truncate" data-testid="text-credit-note-number">
           {creditNote.creditNoteNumber}
@@ -488,10 +544,10 @@ function CreditNoteDetailPanel({ creditNote, branding, organization, onClose, on
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-800/50">
+      <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-800/50 pb-32">
         {showPdfPreview ? (
           <div className="p-4 sm:p-8 flex justify-center">
-            <div className="bg-white rounded-md shadow-md p-2 w-full max-w-3xl overflow-hidden">
+            <div className="bg-white rounded-md shadow-md p-2 w-full max-w-[210mm]">
               <CreditNotePdfPreview creditNote={creditNote} branding={branding} organization={organization} />
             </div>
           </div>
@@ -566,6 +622,7 @@ export default function CreditNotes() {
   const [creditNoteToDelete, setCreditNoteToDelete] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [branding, setBranding] = useState<any>(null);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   useEffect(() => {
     fetchCreditNotes();
@@ -662,41 +719,117 @@ export default function CreditNotes() {
 
   return (
     <div className="h-full flex w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="credit-notes-layout">
+      <ResizablePanelGroup key={selectedCreditNote ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
-          defaultSize={selectedCreditNote ? 40 : 100}
-          minSize={40}
-          className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[40%]"
+          defaultSize={selectedCreditNote ? 31 : 100}
+          minSize={selectedCreditNote ? 31 : 100}
+          maxSize={selectedCreditNote ? 31 : 100}
+          className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
         >
           <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between gap-4 p-4 border-b border-slate-200 dark:border-slate-700 bg-white sticky top-0 z-10">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+              <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
+                        <span className={selectedCreditNote ? "text-base sm:text-lg lg:text-xl line-clamp-2" : "text-xl line-clamp-2"}>
+                          All Credit Notes
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuItem onClick={() => setActiveFilter("all")}>All Credit Notes</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("open")}>Open</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("closed")}>Closed</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("void")}>Void</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <span className="text-sm text-slate-400">({creditNotes.length})</span>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
+                {selectedCreditNote ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 px-0"
+                      data-testid="button-search-compact"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search credit notes..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-credit-notes"
+                    />
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => setLocation('/credit-notes/create')}
+                  className={cn(
+                    "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9",
+                    selectedCreditNote && "w-9 px-0"
+                  )}
+                  size={selectedCreditNote ? "icon" : "default"}
+                  data-testid="button-new-credit-note"
+                >
+                  <Plus className="h-4 w-4" />
+                  {!selectedCreditNote && <span>New</span>}
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="gap-2 text-lg font-semibold" data-testid="dropdown-filter">
-                      All Credit Notes
-                      <ChevronDown className="h-4 w-4" />
+                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => setActiveFilter("all")}>All Credit Notes</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("open")}>Open</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("closed")}>Closed</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("void")}>Void</DropdownMenuItem>
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span>Sort by</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Date</DropdownMenuItem>
+                          <DropdownMenuItem>Credit Number</DropdownMenuItem>
+                          <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                          <DropdownMenuItem>Amount</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={fetchCreditNotes}>
+                      <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              <div className="flex items-center gap-2">
-                <Button onClick={() => setLocation('/credit-notes/create')} className="gap-2" data-testid="button-new-credit-note">
-                  <Plus className="h-4 w-4" /> New
-                </Button>
-                <Button variant="ghost" size="icon" data-testid="button-more-actions">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
 
-            <div className="flex-1 overflow-auto bg-white" data-testid="container-credit-notes-list">
+            <div className="flex-1 overflow-auto scrollbar-hide bg-white" data-testid="container-credit-notes-list">
               {isLoading ? (
                 <div className="px-4 py-8 text-center text-slate-500">Loading...</div>
               ) : filteredCreditNotes.length === 0 ? (
@@ -744,14 +877,14 @@ export default function CreditNotes() {
                           data-testid="checkbox-select-all"
                         />
                       </th>
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Credit Note#</th>
-                      <th className="px-4 py-3">Reference Number</th>
-                      <th className="px-4 py-3">Customer Name</th>
-                      <th className="px-4 py-3">Invoice#</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 text-right">Amount</th>
-                      <th className="px-4 py-3 text-right">Balance</th>
+                      <th className="px-4 py-3 text-left font-semibold">Date</th>
+                      <th className="px-4 py-3 text-left font-semibold">Credit Note#</th>
+                      <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference Number</th>
+                      <th className="px-4 py-3 text-left font-semibold">Customer Name</th>
+                      <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Invoice#</th>
+                      <th className="px-4 py-3 text-left font-semibold">Status</th>
+                      <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                      <th className="px-4 py-3 text-right font-semibold">Balance</th>
                       <th className="px-4 py-3 w-10">
                         <Search className="h-4 w-4 text-slate-400" />
                       </th>
@@ -808,8 +941,8 @@ export default function CreditNotes() {
         {selectedCreditNote && (
           <>
             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
-              <div className="h-full flex flex-col overflow-hidden bg-white border-l border-slate-200 dark:border-slate-700">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-white h-full">
+              <div className="h-full flex flex-col overflow-hidden bg-white border-l border-slate-200 dark:border-slate-700 min-h-0">
                 <CreditNoteDetailPanel
                   creditNote={selectedCreditNote}
                   branding={branding}

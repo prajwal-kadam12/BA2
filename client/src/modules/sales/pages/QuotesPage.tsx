@@ -136,6 +136,7 @@ export default function QuotesPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeFilter, setActiveFilter] = useState<string>("All");
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   useEffect(() => {
     fetchQuotes();
@@ -226,20 +227,21 @@ export default function QuotesPage() {
 
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup direction="horizontal" className="h-full w-full" autoSaveId="quotes-layout">
+      <ResizablePanelGroup key={selectedQuote ? "split" : "single"} direction="horizontal" className="h-full w-full">
         <ResizablePanel
-          defaultSize={selectedQuote ? 30 : 100}
-          minSize={25}
-          className={`flex flex-col bg-white ${selectedQuote ? 'border-r border-slate-200' : ''}`}
+          defaultSize={selectedQuote ? 33 : 100}
+          minSize={selectedQuote ? 25 : 100}
+          maxSize={selectedQuote ? 75 : 100}
+          className={`flex flex-col bg-white min-w-[25%] ${selectedQuote ? 'border-r border-slate-200' : ''}`}
         >
           <div className="flex-1 flex flex-col min-h-0 relative">
-            <div className="flex items-center justify-between p-4">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
               <div className="flex items-center gap-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 text-xl font-semibold text-slate-900 hover:text-slate-700 transition-colors">
-                      {activeFilter === "All" ? "All Quotes" : `${activeFilter} Quotes`}
-                      <ChevronDown className="h-4 w-4 text-slate-500" />
+                    <button className="flex items-center gap-2 text-xl font-semibold text-slate-900 hover:text-slate-700 transition-colors text-left whitespace-normal">
+                      <span className="line-clamp-2">{activeFilter === "All" ? "All Quotes" : `${activeFilter} Quotes`}</span>
+                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-56">
@@ -274,6 +276,30 @@ export default function QuotesPage() {
                 </DropdownMenu>
               </div>
               <div className="flex items-center gap-2">
+                {selectedQuote ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 px-0"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  )
+                ) : null}
                 <Button
                   onClick={() => setLocation("/quotes/create")}
                   className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-9"
@@ -300,7 +326,7 @@ export default function QuotesPage() {
               </div>
             )}
 
-            <div className="flex-1 overflow-auto border-t border-slate-200 relative">
+            <div className="flex-1 overflow-auto scrollbar-hide border-t border-slate-200 relative">
               {loading ? (
                 <div className="p-8 text-center text-slate-500">Loading quotes...</div>
               ) : filteredQuotes.length === 0 ? (
@@ -436,7 +462,7 @@ export default function QuotesPage() {
         {selectedQuote && (
           <>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={70} minSize={30} className="bg-slate-50">
+            <ResizablePanel defaultSize={65} minSize={30} className="bg-slate-50">
               <div className="h-full overflow-hidden">
                 <QuoteDetailPanel
                   quote={selectedQuote}

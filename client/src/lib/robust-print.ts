@@ -184,7 +184,7 @@ export const robustIframePrint = async (elementId: string, title?: string) => {
                     }
                     @media print {
                         @page { 
-                            margin: 5mm; /* Small safety margin */
+                            margin: 0; 
                             size: auto; 
                         }
                         body { visibility: visible; }

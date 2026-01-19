@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useLocation, useParams } from "wouter";
 import {
   Calendar as CalendarIcon,
@@ -10,6 +11,8 @@ import {
   ArrowLeft,
   Printer,
   Share2,
+  X,
+  Clock,
   Search,
   Settings,
 } from "lucide-react";
@@ -88,6 +91,7 @@ const getTaxRate = (taxValue: string): number => {
 };
 
 export default function InvoiceEdit() {
+  const isMobile = useIsMobile();
   const [, setLocation] = useLocation();
   const params = useParams<{ id: string }>();
   const { toast } = useToast();
@@ -408,43 +412,76 @@ export default function InvoiceEdit() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 pb-24 overflow-y-auto max-h-screen">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => setLocation('/invoices')} data-testid="button-back">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-semibold">Edit Invoice</h1>
-            <p className="text-sm text-muted-foreground">{invoiceNumber}</p>
+    <div className={`mx-auto space-y-4 md:space-y-8 pb-32 relative overflow-y-auto scrollbar-hide max-h-screen ${isMobile ? 'px-0' : 'max-w-7xl px-4 sm:px-6'}`}>
+
+      {isMobile ? (
+        <div className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/invoices")} className="h-9 w-9">
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-lg font-bold text-slate-900 leading-tight">Edit Invoice</h1>
+              <p className="text-[10px] text-slate-500 font-mono">#{invoiceNumber}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-500">
+              <Printer className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-9 w-9 text-slate-500">
+              <Share2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Button variant="ghost" size="sm" onClick={() => setLocation("/invoices")} className="h-8 -ml-2 text-muted-foreground hover:text-foreground">
+                  <ArrowLeft className="h-4 w-4 mr-1" /> Back to Invoices
+                </Button>
+              </div>
+              <h1 className="text-3xl font-display font-bold text-foreground tracking-tight">Edit Invoice</h1>
+              <p className="text-muted-foreground mt-1 font-mono text-sm">#{invoiceNumber}</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" className="gap-2 bg-card hover:bg-secondary/50">
+                <Printer className="h-4 w-4" /> Print
+              </Button>
+              <Button variant="outline" className="gap-2 bg-card hover:bg-secondary/50">
+                <Share2 className="h-4 w-4" /> Share
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
-      <Card className="mb-6">
+      <Card className={`mb-6 ${isMobile ? 'rounded-none border-x-0' : ''}`}>
         <CardHeader>
           <CardTitle>Invoice Details</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
+        <CardContent className={isMobile ? "p-4 space-y-6" : "space-y-6"}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Customer Name</Label>
-              <Input value={customerName} disabled className="bg-muted/50" data-testid="input-customer-name" />
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Customer Name</Label>
+              <Input value={customerName} disabled className="bg-muted/50 h-11 md:h-9" data-testid="input-customer-name" />
             </div>
             <div className="space-y-2">
-              <Label>Invoice #</Label>
-              <Input value={invoiceNumber} disabled className="bg-muted/50" data-testid="input-invoice-number" />
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Invoice #</Label>
+              <Input value={invoiceNumber} disabled className="bg-muted/50 h-11 md:h-9" data-testid="input-invoice-number" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="space-y-2">
-              <Label>Invoice Date</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Invoice Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
+                    className={cn("w-full justify-start text-left font-normal h-11 md:h-9", !date && "text-muted-foreground")}
                     data-testid="button-invoice-date"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -458,26 +495,28 @@ export default function InvoiceEdit() {
             </div>
 
             <div className="space-y-2">
-              <Label>Terms</Label>
-              <Select value={paymentTerms} onValueChange={setPaymentTerms}>
-                <SelectTrigger data-testid="select-payment-terms">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TERMS_OPTIONS.map(opt => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Terms</Label>
+              <span className="md:h-9">
+                <Select value={paymentTerms} onValueChange={setPaymentTerms}>
+                  <SelectTrigger className="h-11 md:h-9" data-testid="select-payment-terms">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TERMS_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </span>
             </div>
 
             <div className="space-y-2">
-              <Label>Due Date</Label>
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Due Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn("w-full justify-start text-left font-normal", !dueDate && "text-muted-foreground")}
+                    className={cn("w-full justify-start text-left font-normal h-11 md:h-9", !dueDate && "text-muted-foreground")}
                     data-testid="button-due-date"
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -490,8 +529,8 @@ export default function InvoiceEdit() {
               </Popover>
             </div>
 
-            <div className="space-y-2">
-              <Label>Salesperson</Label>
+            <div className="space-y-2 col-span-2 md:col-span-1">
+              <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Salesperson</Label>
               <Select value={selectedSalesperson} onValueChange={(val) => {
                 if (val === "manage_salespersons") {
                   setShowManageSalespersons(true);
@@ -499,7 +538,7 @@ export default function InvoiceEdit() {
                   setSelectedSalesperson(val);
                 }
               }}>
-                <SelectTrigger data-testid="select-salesperson">
+                <SelectTrigger className="h-11 md:h-9" data-testid="select-salesperson">
                   <SelectValue placeholder="Select salesperson" />
                 </SelectTrigger>
                 <SelectContent>
@@ -521,156 +560,275 @@ export default function InvoiceEdit() {
         </CardContent>
       </Card>
 
-      <Card className="mb-6">
+      <Card className={`mb-6 ${isMobile ? 'rounded-none border-x-0' : ''}`}>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <CardTitle>Item Table</CardTitle>
-          <Button variant="outline" size="sm" onClick={handleAddItem} data-testid="button-add-item">
+          <Button variant="outline" size="sm" onClick={handleAddItem} data-testid="button-add-item" className={isMobile ? "h-9 px-3" : ""}>
             <Plus className="h-4 w-4 mr-1" /> Add Item
           </Button>
         </CardHeader>
-        <CardContent>
-          <div className="border rounded-lg overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow>
-                  <TableHead className="w-[30%] min-w-[200px]">Item Details</TableHead>
-                  <TableHead className="w-[10%] min-w-[80px]">Qty</TableHead>
-                  <TableHead className="w-[12%] min-w-[100px]">Rate</TableHead>
-                  <TableHead className="w-[15%] min-w-[120px]">Discount</TableHead>
-                  <TableHead className="w-[13%] min-w-[100px]">Tax</TableHead>
-                  <TableHead className="w-[10%] min-w-[80px]">Tax Amt</TableHead>
-                  <TableHead className="w-[10%] min-w-[100px] text-right">Amount</TableHead>
-                  <TableHead className="w-[5%] min-w-[50px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {items.map((item, index) => {
-                  const lineCalc = calculateLineItem(item);
-                  return (
-                    <TableRow key={item.id} className="align-top">
-                      <TableCell className="py-3">
-                        <div className="space-y-2">
-                          <Select
-                            value={item.itemId || "custom"}
-                            onValueChange={(val) => {
-                              if (val === "create_new_item") {
-                                setLocation('/items/create');
-                                return;
-                              }
-                              handleItemChange(index, val);
-                            }}
-                          >
-                            <SelectTrigger className="h-9" data-testid={`select-item-${index}`}>
-                              <SelectValue placeholder="Select item">
-                                {item.name || "Select item"}
-                              </SelectValue>
-                            </SelectTrigger>
-                            <SelectContent>
-                              {itemOptions.map((opt) => (
-                                <SelectItem key={opt.id} value={opt.id}>{opt.name}</SelectItem>
-                              ))}
-                              <Separator className="my-1" />
-                              <SelectItem value="create_new_item" className="text-primary font-medium cursor-pointer">
-                                + Create New Item
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
+        <CardContent className={isMobile ? "p-4" : ""}>
+          {!isMobile ? (
+            <div className="border rounded-lg overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-muted/30">
+                  <TableRow>
+                    <TableHead className="w-[30%] min-w-[200px]">Item Details</TableHead>
+                    <TableHead className="w-[10%] min-w-[80px]">Qty</TableHead>
+                    <TableHead className="w-[12%] min-w-[100px]">Rate</TableHead>
+                    <TableHead className="w-[15%] min-w-[120px]">Discount</TableHead>
+                    <TableHead className="w-[13%] min-w-[100px]">Tax</TableHead>
+                    <TableHead className="w-[10%] min-w-[80px]">Tax Amt</TableHead>
+                    <TableHead className="w-[10%] min-w-[100px] text-right">Amount</TableHead>
+                    <TableHead className="w-[5%] min-w-[50px]"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item, index) => {
+                    const lineCalc = calculateLineItem(item);
+                    return (
+                      <TableRow key={item.id} className="align-top">
+                        <TableCell className="py-3">
+                          <div className="space-y-2">
+                            <Select
+                              value={item.itemId || "custom"}
+                              onValueChange={(val) => {
+                                if (val === "create_new_item") {
+                                  setLocation('/items/create');
+                                  return;
+                                }
+                                handleItemChange(index, val);
+                              }}
+                            >
+                              <SelectTrigger className="h-9" data-testid={`select-item-${index}`}>
+                                <SelectValue placeholder="Select item">
+                                  {item.name || "Select item"}
+                                </SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {itemOptions.map((opt) => (
+                                  <SelectItem key={opt.id} value={opt.id}>{opt.name}</SelectItem>
+                                ))}
+                                <Separator className="my-1" />
+                                <SelectItem value="create_new_item" className="text-primary font-medium cursor-pointer">
+                                  + Create New Item
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
 
-                        </div>
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={item.quantity}
-                          onChange={(e) => handleUpdateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
-                          className="h-9"
-                          data-testid={`input-item-qty-${index}`}
-                        />
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <Input
-                          type="number"
-                          min="0"
-                          value={item.rate}
-                          onChange={(e) => handleUpdateItem(index, 'rate', parseFloat(e.target.value) || 0)}
-                          className="h-9"
-                          data-testid={`input-item-rate-${index}`}
-                        />
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <div className="flex shadow-sm rounded-md">
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3">
                           <Input
                             type="number"
                             min="0"
-                            max={item.discountType === 'percentage' ? 100 : undefined}
-                            value={item.discount}
-                            onChange={(e) => handleUpdateItem(index, 'discount', parseFloat(e.target.value) || 0)}
-                            className="h-9 rounded-r-none border-r-0"
-                            data-testid={`input-item-discount-${index}`}
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            className="h-9"
+                            data-testid={`input-item-qty-${index}`}
                           />
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <Input
+                            type="number"
+                            min="0"
+                            value={item.rate}
+                            onChange={(e) => handleUpdateItem(index, 'rate', parseFloat(e.target.value) || 0)}
+                            className="h-9"
+                            data-testid={`input-item-rate-${index}`}
+                          />
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <div className="flex shadow-sm rounded-md">
+                            <Input
+                              type="number"
+                              min="0"
+                              max={item.discountType === 'percentage' ? 100 : undefined}
+                              value={item.discount}
+                              onChange={(e) => handleUpdateItem(index, 'discount', parseFloat(e.target.value) || 0)}
+                              className="h-9 rounded-r-none border-r-0"
+                              data-testid={`input-item-discount-${index}`}
+                            />
+                            <Select
+                              value={item.discountType}
+                              onValueChange={(val: 'percentage' | 'flat') => handleUpdateItem(index, 'discountType', val)}
+                            >
+                              <SelectTrigger className="h-9 w-[55px] rounded-l-none border-l-0 bg-muted/30">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">%</SelectItem>
+                                <SelectItem value="flat">Rs</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-3">
                           <Select
-                            value={item.discountType}
-                            onValueChange={(val: 'percentage' | 'flat') => handleUpdateItem(index, 'discountType', val)}
+                            value={item.tax}
+                            onValueChange={(val) => handleUpdateItem(index, 'tax', val)}
                           >
-                            <SelectTrigger className="h-9 w-[55px] rounded-l-none border-l-0 bg-muted/30">
-                              <SelectValue />
+                            <SelectTrigger className="h-9" data-testid={`select-item-tax-${index}`}>
+                              <SelectValue placeholder="Tax" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="percentage">%</SelectItem>
-                              <SelectItem value="flat">Rs</SelectItem>
+                              {TAX_OPTIONS.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="py-3 text-sm text-muted-foreground">
+                          {formatCurrency(lineCalc.taxAmount)}
+                        </TableCell>
+                        <TableCell className="py-3 text-right font-medium">
+                          {formatCurrency(lineCalc.total)}
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveItem(index)}
+                            className="text-muted-foreground hover:text-destructive"
+                            data-testid={`button-remove-item-${index}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {items.map((item, index) => {
+                const lineCalc = calculateLineItem(item);
+                return (
+                  <div key={item.id} className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                    <div className="bg-white px-4 py-2 border-b border-slate-100 flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Line Item #{index + 1}</span>
+                      <Button variant="ghost" size="icon" onClick={() => handleRemoveItem(index)} className="h-7 w-7 text-slate-400 hover:text-red-500">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      <div className="space-y-1.5">
+                        <Label className="text-[11px] font-semibold text-slate-400 uppercase">Item</Label>
+                        <Select
+                          value={item.itemId || "custom"}
+                          onValueChange={(val) => {
+                            if (val === "create_new_item") {
+                              setLocation('/items/create');
+                              return;
+                            }
+                            handleItemChange(index, val);
+                          }}
+                        >
+                          <SelectTrigger className="h-11 bg-white border-slate-200">
+                            <SelectValue placeholder="Select item">
+                              {item.name || "Choose item..."}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="max-h-60">
+                            {itemOptions.map((opt) => (
+                              <SelectItem key={opt.id} value={opt.id}>{opt.name}</SelectItem>
+                            ))}
+                            <Separator className="my-1" />
+                            <SelectItem value="create_new_item" className="text-primary">+ Create New</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] font-semibold text-slate-400 uppercase">Qty</Label>
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateItem(index, 'quantity', parseFloat(e.target.value) || 0)}
+                            className="h-11 bg-white border-slate-200"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] font-semibold text-slate-400 uppercase">Rate</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
+                            <Input
+                              type="number"
+                              value={item.rate}
+                              onChange={(e) => handleUpdateItem(index, 'rate', parseFloat(e.target.value) || 0)}
+                              className="h-11 pl-7 bg-white border-slate-200"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] font-semibold text-slate-400 uppercase">Discount</Label>
+                          <div className="flex border border-slate-200 rounded-lg overflow-hidden h-11 bg-white">
+                            <Input
+                              type="number"
+                              value={item.discount}
+                              onChange={(e) => handleUpdateItem(index, 'discount', parseFloat(e.target.value) || 0)}
+                              className="flex-1 border-none focus-visible:ring-0"
+                            />
+                            <Select
+                              value={item.discountType}
+                              onValueChange={(val: 'percentage' | 'flat') => handleUpdateItem(index, 'discountType', val)}
+                            >
+                              <SelectTrigger className="w-14 border-y-0 border-r-0 border-l border-slate-200 bg-slate-100 px-2 rounded-none h-11">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percentage">%</SelectItem>
+                                <SelectItem value="flat">₹</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] font-semibold text-slate-400 uppercase">Tax</Label>
+                          <Select
+                            value={item.tax}
+                            onValueChange={(val) => handleUpdateItem(index, 'tax', val)}
+                          >
+                            <SelectTrigger className="h-11 bg-white border-slate-200">
+                              <SelectValue placeholder="Tax" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {TAX_OPTIONS.map(opt => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
                         </div>
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <Select
-                          value={item.tax}
-                          onValueChange={(val) => handleUpdateItem(index, 'tax', val)}
-                        >
-                          <SelectTrigger className="h-9" data-testid={`select-item-tax-${index}`}>
-                            <SelectValue placeholder="Tax" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TAX_OPTIONS.map(opt => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell className="py-3 text-sm text-muted-foreground">
-                        {formatCurrency(lineCalc.taxAmount)}
-                      </TableCell>
-                      <TableCell className="py-3 text-right font-medium">
-                        {formatCurrency(lineCalc.total)}
-                      </TableCell>
-                      <TableCell className="py-3">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleRemoveItem(index)}
-                          className="text-muted-foreground hover:text-destructive"
-                          data-testid={`button-remove-item-${index}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between border-t border-slate-200">
+                        <span className="text-sm font-medium text-slate-600">Total</span>
+                        <span className="text-lg font-bold text-slate-900 font-mono">₹{lineCalc.total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Notes</CardTitle>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-20 md:mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 order-2 lg:order-1">
+          <Card className={isMobile ? "rounded-none border-x-0" : ""}>
+            <CardHeader className="py-4">
+              <CardTitle className="text-sm">Customer Notes</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
@@ -678,13 +836,14 @@ export default function InvoiceEdit() {
                 onChange={(e) => setCustomerNotes(e.target.value)}
                 placeholder="Notes visible to customer..."
                 rows={4}
+                className="resize-none"
                 data-testid="textarea-customer-notes"
               />
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Terms & Conditions</CardTitle>
+          <Card className={isMobile ? "rounded-none border-x-0" : ""}>
+            <CardHeader className="py-4">
+              <CardTitle className="text-sm">Terms & Conditions</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
@@ -692,25 +851,26 @@ export default function InvoiceEdit() {
                 onChange={(e) => setTermsAndConditions(e.target.value)}
                 placeholder="Terms and conditions..."
                 rows={4}
+                className="resize-none"
                 data-testid="textarea-terms"
               />
             </CardContent>
           </Card>
         </div>
 
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle>Summary</CardTitle>
+        <Card className={`h-fit order-1 lg:order-2 ${isMobile ? 'rounded-none border-x-0 bg-slate-50' : ''}`}>
+          <CardHeader className="py-4">
+            <CardTitle className="text-sm">Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3 text-sm">
-              <div className="flex justify-between">
+            <div className="space-y-4 text-sm">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-medium">{formatCurrency(totals.subtotal)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Tax</span>
-                <span>{formatCurrency(totals.totalTax)}</span>
+                <span className="font-medium">{formatCurrency(totals.totalTax)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-muted-foreground">Shipping Charges</span>
@@ -718,7 +878,7 @@ export default function InvoiceEdit() {
                   type="number"
                   value={shippingCharges}
                   onChange={(e) => setShippingCharges(parseFloat(e.target.value) || 0)}
-                  className="w-24 h-8 text-right"
+                  className="w-24 h-9 text-right"
                   data-testid="input-shipping"
                 />
               </div>
@@ -728,29 +888,34 @@ export default function InvoiceEdit() {
                   type="number"
                   value={adjustment}
                   onChange={(e) => setAdjustment(parseFloat(e.target.value) || 0)}
-                  className="w-24 h-8 text-right"
+                  className="w-24 h-9 text-right"
                   data-testid="input-adjustment"
                 />
               </div>
               <Separator />
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total</span>
-                <span className="text-blue-600" data-testid="text-total">{formatCurrency(finalTotal)}</span>
+              <div className="flex justify-between items-baseline py-2">
+                <span className="text-lg font-bold">Total</span>
+                <span className="text-2xl font-bold text-blue-600 font-mono" data-testid="text-total">{formatCurrency(finalTotal)}</span>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="fixed bottom-0 left-0 md:left-64 right-0 bg-card/80 backdrop-blur-md border-t border-border/60 p-4 z-40">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <Button variant="ghost" onClick={() => setLocation("/invoices")} data-testid="button-cancel">
-            Cancel
+      <div className={`fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-200 z-50 transition-all duration-300 ${isMobile ? 'pb-safe' : 'md:left-64'}`}>
+        <div className={`max-w-6xl mx-auto flex items-center justify-between gap-3 ${isMobile ? 'px-4 py-3' : 'px-6 py-4'}`}>
+          <Button variant="ghost" className="text-slate-500 hover:text-slate-900" onClick={() => setLocation("/invoices")}>
+            {isMobile ? <X className="h-5 w-5" /> : "Cancel"}
           </Button>
-          <div className="flex items-center gap-3">
-            <Button onClick={handleSave} disabled={saving} className="gap-2" data-testid="button-save">
+          <div className="flex items-center gap-2 md:gap-3 flex-1 justify-end">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className={`flex-1 md:flex-none max-w-[200px] gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-sm h-11 md:h-10`}
+              data-testid="button-save"
+            >
               <Save className="h-4 w-4" />
-              {saving ? "Saving..." : "Save Changes"}
+              <span>{saving ? "Saving..." : "Save Changes"}</span>
             </Button>
           </div>
         </div>

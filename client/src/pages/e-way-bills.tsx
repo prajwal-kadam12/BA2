@@ -14,6 +14,12 @@ import {
 import {
     Plus,
     Search,
+    ChevronDown,
+    MoreHorizontal,
+    ArrowUpDown,
+    Download,
+    Settings,
+    RefreshCw
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -36,6 +42,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubTrigger,
+    DropdownMenuPortal,
+    DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu";
 
 interface EWayBillListItem {
     id: string;
@@ -158,6 +175,7 @@ export default function EWayBills() {
     const [transactionTypeFilter, setTransactionTypeFilter] = useState('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState("");
+    const [isSearchVisible, setIsSearchVisible] = useState(false);
 
     useEffect(() => {
         fetchEWayBills();
@@ -236,81 +254,194 @@ export default function EWayBills() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
-            <ResizablePanelGroup direction="horizontal" className="h-full w-full">
-                <ResizablePanel defaultSize={selectedBill ? 30 : 100} minSize={20} className="bg-white border-r">
+            <ResizablePanelGroup key={selectedBill ? "split" : "single"} direction="horizontal" className="h-full w-full">
+                <ResizablePanel
+                    defaultSize={selectedBill ? 33 : 100}
+                    minSize={selectedBill ? 33 : 100}
+                    maxSize={selectedBill ? 33 : 100}
+                    className="bg-white border-r min-w-[25%]"
+                >
                     <div className="flex flex-col h-full overflow-hidden">
-                        <div className="flex-none p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
-                            <h2 className="text-xl font-bold px-2">E-Way Bills</h2>
-                            <Button className="gap-2 bg-blue-600 hover:bg-blue-700" onClick={() => setLocation('/e-way-bills/create')}>
-                                <Plus className="h-4 w-4" /> New
-                            </Button>
-                        </div>
-
-                        <div className="flex-none p-4 border-b space-y-4">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                <Input
-                                    placeholder="Search E-Way Bills..."
-                                    className="pl-10"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
+                        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                            <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button
+                                            variant="ghost"
+                                            className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
+                                        >
+                                            <span className="line-clamp-2">All E-Way Bills</span>
+                                            <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="start" className="w-56">
+                                        <DropdownMenuItem>All E-Way Bills</DropdownMenuItem>
+                                        <DropdownMenuItem>Draft</DropdownMenuItem>
+                                        <DropdownMenuItem>Open</DropdownMenuItem>
+                                        <DropdownMenuItem>Delivered</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                <span className="text-sm text-slate-400">({ewayBills.length})</span>
                             </div>
 
-                            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 shrink-0 w-full">
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Period:</span>
-                                    <Select value={periodFilter} onValueChange={setPeriodFilter} data-testid="select-period-filter">
-                                        <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-period">
-                                            <SelectValue placeholder="Period" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {transactionPeriods.map((period) => (
-                                                <SelectItem key={period.value} value={period.value} className="text-sm">
-                                                    {period.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                            <div className="flex items-center gap-2">
+                                {selectedBill ? (
+                                    isSearchVisible ? (
+                                        <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                autoFocus
+                                                placeholder="Search..."
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                                                className="pl-9 h-9"
+                                            />
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-9 w-9 px-0"
+                                            data-testid="button-search-compact"
+                                            onClick={() => setIsSearchVisible(true)}
+                                        >
+                                            <Search className="h-4 w-4 text-slate-500" />
+                                        </Button>
+                                    )
+                                ) : (
+                                    <div className="relative w-[240px] hidden sm:block">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            placeholder="Search e-way bills..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-9 h-9"
+                                            data-testid="input-search-eway-bills"
+                                        />
+                                    </div>
+                                )}
 
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Type:</span>
-                                    <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter} data-testid="select-type-filter">
-                                        <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-type">
-                                            <SelectValue placeholder="Type" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {transactionTypeFilters.map((type) => (
-                                                <SelectItem key={type.value} value={type.value} className="text-sm">
-                                                    {type.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
 
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Status:</span>
-                                    <Select value={statusFilter} onValueChange={setStatusFilter} data-testid="select-status-filter">
-                                        <SelectTrigger className="w-[100px] sm:w-[110px] h-8 text-sm px-2 shrink-0 !min-w-[100px] sm:!min-w-[110px]" data-testid="select-trigger-status">
-                                            <SelectValue placeholder="Status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {ewayBillStatuses.map((status) => (
-                                                <SelectItem key={status.value} value={status.value} className="text-sm">
-                                                    {status.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
+                                <Button
+                                    className={cn(
+                                        "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 font-semibold",
+                                        selectedBill && "w-9 px-0"
+                                    )}
+                                    size={selectedBill ? "icon" : "default"}
+                                    onClick={() => setLocation('/e-way-bills/create')}
+                                    data-testid="button-new-eway-bill"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    {!selectedBill && <span>New</span>}
+                                </Button>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-56 p-1">
+                                        <DropdownMenuSub>
+                                            <DropdownMenuSubTrigger>
+                                                <ArrowUpDown className="mr-2 h-4 w-4" />
+                                                <span>Sort by</span>
+                                            </DropdownMenuSubTrigger>
+                                            <DropdownMenuPortal>
+                                                <DropdownMenuSubContent>
+                                                    <DropdownMenuItem>Date</DropdownMenuItem>
+                                                    <DropdownMenuItem>Bill Number</DropdownMenuItem>
+                                                    <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                                                    <DropdownMenuItem>Amount</DropdownMenuItem>
+                                                </DropdownMenuSubContent>
+                                            </DropdownMenuPortal>
+                                        </DropdownMenuSub>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem data-testid="menu-import">
+                                            <Download className="mr-2 h-4 w-4" /> Import Bills
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem data-testid="menu-export">
+                                            <Download className="mr-2 h-4 w-4" /> Export Bills
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem data-testid="menu-preferences">
+                                            <Settings className="mr-2 h-4 w-4" /> Preferences
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={fetchEWayBills}>
+                                            <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                                        </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
                             </div>
                         </div>
+
+                        {!selectedBill && (
+                            <div className="flex-none p-4 border-b space-y-4">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Input
+                                        placeholder="Search E-Way Bills..."
+                                        className="pl-10"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Period:</span>
+                                        <Select value={periodFilter} onValueChange={setPeriodFilter} data-testid="select-period-filter">
+                                            <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-period">
+                                                <SelectValue placeholder="Period" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {transactionPeriods.map((period) => (
+                                                    <SelectItem key={period.value} value={period.value} className="text-sm">
+                                                        {period.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Type:</span>
+                                        <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter} data-testid="select-type-filter">
+                                            <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-type">
+                                                <SelectValue placeholder="Type" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {transactionTypeFilters.map((type) => (
+                                                    <SelectItem key={type.value} value={type.value} className="text-sm">
+                                                        {type.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Status:</span>
+                                        <Select value={statusFilter} onValueChange={setStatusFilter} data-testid="select-status-filter">
+                                            <SelectTrigger className="w-[100px] sm:w-[110px] h-8 text-sm px-2 shrink-0 !min-w-[100px] sm:!min-w-[110px]" data-testid="select-trigger-status">
+                                                <SelectValue placeholder="Status" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {ewayBillStatuses.map((status) => (
+                                                    <SelectItem key={status.value} value={status.value} className="text-sm">
+                                                        {status.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="flex-1 overflow-hidden relative">
                             <div className="absolute inset-0 flex flex-col">
-                                <div className="flex-1 overflow-y-auto">
+                                <div className="flex-1 overflow-y-auto scrollbar-hide">
                                     <table className="w-full">
                                         <thead className="bg-slate-50 sticky top-0 z-10">
                                             <tr className="border-b">
@@ -319,12 +450,12 @@ export default function EWayBills() {
                                                     onCheckedChange={handleSelectAll}
                                                     data-testid="checkbox-select-all"
                                                 /></th>
-                                                <th className="p-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">E-Way Bill Details</th>
+                                                <th className="p-3 text-left font-semibold">E-Way Bill Details</th>
                                                 {!selectedBill && (
                                                     <>
-                                                        <th className="p-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
-                                                        <th className="p-3 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
-                                                        <th className="p-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">Amount</th>
+                                                        <th className="p-3 text-left font-semibold">Customer</th>
+                                                        <th className="p-3 text-left font-semibold">Status</th>
+                                                        <th className="p-3 text-right font-semibold">Amount</th>
                                                     </>
                                                 )}
                                             </tr>
@@ -397,7 +528,7 @@ export default function EWayBills() {
                 {selectedBill && (
                     <>
                         <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 transition-all" />
-                        <ResizablePanel defaultSize={70} minSize={30} className="bg-white">
+                        <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
                             <EWayBillDetailPanel
                                 bill={selectedBill}
                                 onClose={() => setSelectedBill(null)}
@@ -428,6 +559,6 @@ export default function EWayBills() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </div >
     );
 }

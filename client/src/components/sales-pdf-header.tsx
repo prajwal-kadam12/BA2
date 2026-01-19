@@ -51,96 +51,117 @@ export function SalesPDFHeader({
     const addressParts = getFullAddress(org);
 
     return (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
-            {/* Left Section: Logo and Company Info */}
-            <div style={{ flex: 1 }}>
-                {/* Logo */}
-                {logoToUse?.url ? (
-                    <img
-                        src={logoToUse.url}
-                        alt="Company Logo"
-                        style={{ height: '60px', width: 'auto', marginBottom: '5px', objectFit: 'contain' }}
-                    />
-                ) : null}
-
-                {/* Company Details */}
-                <div style={{ fontSize: '12px', lineHeight: '1.5', color: '#334155' }}>
-                    {/* Company Name */}
-                    {org?.name && (
-                        <p style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 'bold', color: '#0f172a' }}>
-                            {org.name}
-                        </p>
+        <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'stretch', // Changed to stretch for equal height look
+            marginBottom: '48px',
+            fontFamily: "'Inter', sans-serif"
+        }}>
+            {/* Left Section: Branding and Company Info */}
+            <div style={{ flex: '1.5', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Branding */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    {logoToUse?.url && (
+                        <div style={{ padding: '4px', backgroundColor: '#ffffff' }}>
+                            <img
+                                src={logoToUse.url}
+                                alt="Logo"
+                                style={{ maxHeight: '64px', maxWidth: '160px', objectFit: 'contain' }}
+                            />
+                        </div>
                     )}
+                    <div>
+                        <h1 style={{
+                            margin: '0',
+                            fontSize: '24px',
+                            fontWeight: '900',
+                            color: '#0f172a',
+                            letterSpacing: '-0.04em',
+                            lineHeight: '1.1'
+                        }}>
+                            {org?.name || 'Company Name'}
+                        </h1>
+                        {org?.gstin && (
+                            <p style={{
+                                margin: '4px 0 0 0',
+                                fontSize: '11px',
+                                fontWeight: '700',
+                                color: '#1e40af',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                            }}>
+                                GSTIN: {org.gstin}
+                            </p>
+                        )}
+                    </div>
+                </div>
 
-                    {/* Full Address */}
-                    {addressParts.length > 0 && (
-                        <>
-                            {addressParts.map((part, idx) => (
-                                <p key={idx} style={{ margin: '0 0 2px 0' }}>
-                                    {part}
-                                </p>
-                            ))}
-                        </>
-                    )}
-
-                    {/* Email */}
-                    {org?.email && (
-                        <p style={{ margin: '2px 0', color: '#475569' }}>
-                            {org.email}
-                        </p>
-                    )}
-
-                    {/* Website */}
-                    {org?.website && (
-                        <p style={{ margin: '2px 0', color: '#475569' }}>
-                            {org.website}
-                        </p>
-                    )}
-
-                    {/* GSTIN */}
-                    {org?.gstin && (
-                        <p style={{ margin: '2px 0', fontWeight: '500', color: '#0f172a' }}>
-                            GSTIN {org.gstin}
-                        </p>
-                    )}
+                {/* Company Contact Info */}
+                <div style={{
+                    fontSize: '13px',
+                    color: '#475569',
+                    lineHeight: '1.6',
+                    paddingLeft: logoToUse?.url ? '0' : '0' // Align if no logo
+                }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                        {addressParts.join(', ')}
+                    </div>
+                    <div style={{ display: 'flex', gap: '16px', marginTop: '4px', fontWeight: '500' }}>
+                        {org?.email && <span>{org.email}</span>}
+                        {org?.website && <span>{org.website}</span>}
+                    </div>
                 </div>
             </div>
 
-            {/* Right Section: Document Info */}
-            <div style={{ textAlign: 'right', minWidth: '250px' }}>
-                {/* Document Title */}
-                <h2
-                    style={{
-                        fontSize: '24px',
-                        color: '#1e40af',
-                        margin: '0 0 20px 0',
-                        fontWeight: 'bold',
-                        letterSpacing: '0.5px',
-                        lineHeight: '1.2',
-                    }}
-                >
-                    {documentTitle}
-                </h2>
+            {/* Right Section: Document Metadata Card */}
+            <div style={{
+                flex: '1',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-end',
+                justifyContent: 'space-between'
+            }}>
+                <div style={{
+                    backgroundColor: '#1e40af',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 6px -1px rgba(30, 64, 175, 0.1), 0 2px 4px -1px rgba(30, 64, 175, 0.06)',
+                    marginBottom: '20px',
+                    textAlign: 'center',
+                    minWidth: '200px'
+                }}>
+                    <h2 style={{
+                        fontSize: '22px',
+                        fontWeight: '900',
+                        margin: '0',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em'
+                    }}>
+                        {documentTitle}
+                    </h2>
+                </div>
 
-                {/* Document Number */}
-                <p style={{ fontSize: '15px', fontWeight: '700', margin: '0 0 16px 0', color: '#334155', lineHeight: '1.4' }}>
-                    # {documentNumber}
-                </p>
-
-                {/* Date and Reference */}
-                <div style={{ fontSize: '12px', color: '#64748b', lineHeight: '1.6' }}>
-                    <div style={{ display: 'flex', marginLeft: '140px',marginBottom: '4px' }}>
-                        <span>Date :</span>
-                        <span style={{ minWidth: '80px', textAlign: 'right', color: '#0f172a' }}>
-                            {formatDate(date)}
-                        </span>
+                <div style={{
+                    backgroundColor: '#f8fafc',
+                    borderRadius: '8px',
+                    padding: '16px',
+                    border: '1px solid #f1f5f9',
+                    minWidth: '220px'
+                }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>{documentTitle}#</span>
+                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>{documentNumber}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', marginBottom: referenceNumber ? '8px' : '0' }}>
+                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Date</span>
+                        <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>{formatDate(date)}</span>
                     </div>
                     {referenceNumber && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span>Ref# :</span>
-                            <span style={{ minWidth: '120px', textAlign: 'right', color: '#0f172a' }}>
-                                {referenceNumber}
-                            </span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>Ref#</span>
+                            <span style={{ fontSize: '13px', fontWeight: '800', color: '#0f172a' }}>{referenceNumber}</span>
                         </div>
                     )}
                 </div>

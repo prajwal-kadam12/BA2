@@ -519,22 +519,22 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
         <div className="flex items-center justify-between px-6 border-b border-slate-200 dark:border-slate-700">
-          <TabsList className="h-auto p-0 bg-transparent">
+          <TabsList className="h-auto p-0 bg-transparent gap-6">
             <TabsTrigger
               value="details"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent px-4 py-3"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
             >
               Quote Details
             </TabsTrigger>
             <TabsTrigger
               value="activity"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent px-4 py-3"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
             >
               Activity Logs
             </TabsTrigger>
             <TabsTrigger
               value="emails"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent px-4 py-3"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 data-[state=active]:bg-transparent data-[state=active]:shadow-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 px-2 py-3 bg-transparent hover:bg-transparent transition-none"
             >
               Emails
             </TabsTrigger>
@@ -836,7 +836,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
         </TabsContent>
       </Tabs>
 
-{/* 
+      {/* 
       <div className="border-t border-slate-200 dark:border-slate-700 p-4 flex items-center justify-between">
         <Button variant="ghost" size="icon" className="h-8 w-8">
           <ChevronDown className="h-4 w-4 rotate-90" />

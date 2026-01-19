@@ -1363,6 +1363,29 @@ export async function registerRoutes(
     }
   });
 
+  app.delete("/api/customers/:id/comments/:commentId", (req: Request, res: Response) => {
+    try {
+      const data = readCustomersData();
+      const customerIndex = data.customers.findIndex((c: any) => c.id === req.params.id);
+      if (customerIndex === -1) {
+        return res.status(404).json({ success: false, message: "Customer not found" });
+      }
+
+      const comments = data.customers[customerIndex].comments || [];
+      const commentIndex = comments.findIndex((c: any) => c.id === req.params.commentId);
+      if (commentIndex === -1) {
+        return res.status(404).json({ success: false, message: "Comment not found" });
+      }
+
+      comments.splice(commentIndex, 1);
+      data.customers[customerIndex].comments = comments;
+      writeCustomersData(data);
+      res.json({ success: true, message: "Comment deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ success: false, message: "Failed to delete comment" });
+    }
+  });
+
   // Customer Transactions API
   app.get("/api/customers/:id/transactions", (req: Request, res: Response) => {
     try {

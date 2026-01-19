@@ -215,7 +215,7 @@ export default function SettingsOrganizations() {
                             Add Organization
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto scrollbar-hide">
                         <DialogHeader>
                             <DialogTitle>{editingId ? "Edit Organization" : "Add New Organization"}</DialogTitle>
                         </DialogHeader>
