@@ -224,7 +224,7 @@ const InvoicePDFView = ({ invoice, branding, organization }: { invoice: InvoiceD
             lineHeight: '1.5'
         }}>
             {/* Header Section */}
-            <div style={{ marginBottom: '40px' }}>
+            <div style={{ marginBottom: '40px', overflowX: 'auto' }}>
                 <SalesPDFHeader
                     logo={branding?.logo || undefined}
                     documentTitle="INVOICE"
@@ -1238,8 +1238,8 @@ export default function Invoices() {
                                 </div>
 
                                 {showPdfPreview ? (
-                                    <div className="flex-1 overflow-auto scrollbar-hide bg-slate-100 dark:bg-slate-800 p-8 flex justify-center">
-                                        <div className="w-full max-w-[210mm] shadow-lg bg-white dark:bg-white">
+                                    <div className="flex-1 overflow-auto scrollbar-hide bg-slate-100 dark:bg-slate-800 p-4 sm:p-8 flex justify-center">
+                                        <div className="w-full max-w-[210mm] shadow-lg bg-white dark:bg-white mx-auto">
                                             <div id="invoice-pdf-content" ref={invoicePdfRef} className="bg-white w-full" style={{ minHeight: '296mm', border: '1px solid #cbd5e1' }}>
                                                 <InvoicePDFView
                                                     invoice={selectedInvoice}

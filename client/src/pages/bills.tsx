@@ -761,11 +761,19 @@ function BillDetailPanel({
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto scrollbar-hide p-4">
+      <div className="flex-1 overflow-auto bg-slate-100 dark:bg-slate-800/50 pb-32">
         {showPdfView ? (
-          <BillPDFView bill={bill} branding={branding} />
+          <div className="p-4 sm:p-8 flex justify-center">
+            <div className="bg-white rounded-md shadow-md w-full max-w-[210mm] overflow-hidden">
+              <BillPDFView bill={bill} branding={branding} />
+            </div>
+          </div>
         ) : (
-          <BillDetailView bill={bill} />
+          <div className="p-4 sm:p-6 mx-auto w-full max-w-5xl">
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+              <BillDetailView bill={bill} />
+            </div>
+          </div>
         )}
       </div>
 

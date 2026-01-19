@@ -340,7 +340,44 @@
       "updatedAt": "2026-01-12T06:52:23.397Z",
       "status": "inactive",
       "exemptionReason": ""
+    },
+    {
+      "id": "15",
+      "name": "Ashtvinayak Education  (Copy)",
+      "email": "ganeshkale030303@gmail.com",
+      "phone": "",
+      "billingAddress": {
+        "street": "",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "country": "India",
+        "pincode": ""
+      },
+      "shippingAddress": {
+        "street": "",
+        "city": "Pune",
+        "state": "Maharashtra",
+        "country": "India",
+        "pincode": ""
+      },
+      "createdAt": "2026-01-19T04:38:00.918Z",
+      "status": "active",
+      "updatedAt": "2026-01-19T04:38:00.918Z",
+      "displayName": "Ashtvinayak Education ",
+      "companyName": "Ashtvinayak Education",
+      "workPhone": "",
+      "mobile": "",
+      "gstTreatment": "",
+      "placeOfSupply": "",
+      "gstin": "",
+      "pan": "",
+      "taxPreference": "taxable",
+      "currency": "INR",
+      "paymentTerms": "",
+      "customerType": "business",
+      "contactPersons": [],
+      "exemptionReason": ""
     }
   ],
-  "nextCustomerId": 15
+  "nextCustomerId": 16
 }

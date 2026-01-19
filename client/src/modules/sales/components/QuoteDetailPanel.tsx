@@ -475,32 +475,32 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
       </div>
 
       {quote.status !== 'CONVERTED' && quote.status !== 'SENT' && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 flex items-center justify-between border-b border-blue-100 dark:border-blue-800">
+        <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-blue-100 dark:border-blue-800 gap-3 sm:gap-0">
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-blue-700 dark:text-blue-400 font-medium">WHAT'S NEXT?</span>
+            <span className="text-blue-700 dark:text-blue-400 font-medium whitespace-nowrap">WHAT'S NEXT?</span>
             <span className="text-slate-600 dark:text-slate-400">Send this quote to your customer.</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" className="h-7 bg-blue-600 hover:bg-blue-700" onClick={handleSendQuote} data-testid="button-send-quote-action">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button size="sm" className="h-7 bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none" onClick={handleSendQuote} data-testid="button-send-quote-action">
               <Send className="h-3 w-3 mr-1" />
               Send Quote
             </Button>
-            <Button variant="outline" size="sm" className="h-7">
+            <Button variant="outline" size="sm" className="h-7 flex-1 sm:flex-none">
               Create Project
             </Button>
           </div>
         </div>
       )}
       {quote.status === 'SENT' && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 flex items-center justify-between border-b border-blue-100 dark:border-blue-800">
+        <div className="bg-blue-50 dark:bg-blue-900/20 px-6 py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-blue-100 dark:border-blue-800 gap-3 sm:gap-0">
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-blue-700 dark:text-blue-400 font-medium">WHAT'S NEXT?</span>
+            <span className="text-blue-700 dark:text-blue-400 font-medium whitespace-nowrap">WHAT'S NEXT?</span>
             <span className="text-slate-600 dark:text-slate-400">Convert this quote to an invoice or a sales order.</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button size="sm" className="h-7 bg-blue-600 hover:bg-blue-700" disabled={isConverting}>
+                <Button size="sm" className="h-7 bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none" disabled={isConverting}>
                   Convert
                   <ChevronDown className="h-3 w-3 ml-1" />
                 </Button>
@@ -510,7 +510,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                 <DropdownMenuItem onClick={handleConvertToSalesOrder}>Convert to Sales Order</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button variant="outline" size="sm" className="h-7">
+            <Button variant="outline" size="sm" className="h-7 flex-1 sm:flex-none">
               Create Project
             </Button>
           </div>
@@ -546,10 +546,10 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
         </div>
 
         {showPdfView ? (
-          <TabsContent value="details" className="flex-1 overflow-auto p-6 mt-0 bg-slate-100 dark:bg-slate-800">
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-sm" id="quote-pdf-content">
+          <TabsContent value="details" className="flex-1 overflow-auto p-4 sm:p-6 mt-0 bg-slate-100 dark:bg-slate-800">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-lg shadow-sm w-full max-w-[210mm] mx-auto" id="quote-pdf-content">
               {/* Standard Sales PDF Header with Organization Info */}
-              <div className="mb-8">
+              <div className="mb-8 overflow-x-auto">
                 <SalesPDFHeader
                   logo={branding?.logo || undefined}
                   documentTitle="Quote"
@@ -568,7 +568,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                 </div>
               </div> */}
 
-              <div className="grid grid-cols-2 gap-8 mb-8 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 text-sm">
                 <div>
                   <h3 className="font-semibold text-slate-900 dark:text-white mb-2">BILL TO</h3>
                   <p className="font-medium text-slate-900 dark:text-white">{quote.customerName}</p>
@@ -584,8 +584,8 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                 </div>
               </div>
 
-              <div className="border rounded-lg overflow-hidden mb-6">
-                <table className="w-full">
+              <div className="border rounded-lg overflow-x-auto mb-6">
+                <table className="w-full min-w-[500px]">
                   <thead className="bg-slate-900 text-white">
                     <tr>
                       <th className="px-4 py-2 text-left text-xs font-medium">#</th>
@@ -603,8 +603,8 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                           <div><p className="font-medium">{item.name}</p>{item.description && <p className="text-xs text-slate-600">{item.description}</p>}</div>
                         </td>
                         <td className="px-4 py-3 text-sm text-center">{item.quantity}{item.unit}</td>
-                        <td className="px-4 py-3 text-sm text-right">{formatCurrency(item.rate)}</td>
-                        <td className="px-4 py-3 text-sm text-right">{formatCurrency(item.amount)}</td>
+                        <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatCurrency(item.rate)}</td>
+                        <td className="px-4 py-3 text-sm text-right whitespace-nowrap">{formatCurrency(item.amount)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -612,7 +612,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
               </div>
 
               <div className="flex justify-end mb-6">
-                <div className="w-64 space-y-2 text-sm">
+                <div className="w-full sm:w-64 space-y-2 text-sm">
                   <div className="flex justify-between"><span className="text-slate-600">Sub Total</span><span className="font-medium">{formatCurrency(quote.subTotal)}</span></div>
                   {quote.cgst > 0 && <div className="flex justify-between"><span className="text-slate-600">CGST (9%)</span><span className="font-medium">{formatCurrency(quote.cgst)}</span></div>}
                   {quote.sgst > 0 && <div className="flex justify-between"><span className="text-slate-600">SGST (9%)</span><span className="font-medium">{formatCurrency(quote.sgst)}</span></div>}
@@ -639,7 +639,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-x-12 gap-y-3 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400">Quote Number</span>
                   <span className="text-slate-900 dark:text-white">{quote.quoteNumber}</span>
@@ -660,14 +660,14 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                   <span className="text-slate-500 dark:text-slate-400">Place of Supply</span>
                   <span className="text-slate-900 dark:text-white">{quote.placeOfSupply || '-'}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between col-span-1 xl:col-span-1">
                   <span className="text-slate-500 dark:text-slate-400">PDF Template</span>
                   <span className="text-blue-600 dark:text-blue-400 flex items-center gap-1">
                     {quote.pdfTemplate}
                     <ExternalLink className="h-3 w-3" />
                   </span>
                 </div>
-                <div className="flex justify-between col-span-2">
+                <div className="flex justify-between col-span-1 xl:col-span-2">
                   <span className="text-slate-500 dark:text-slate-400">Subject</span>
                   <span className="text-slate-900 dark:text-white">{quote.subject || '-'}</span>
                 </div>
@@ -675,7 +675,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
 
               <div className="border-t border-slate-200 dark:border-slate-700 pt-6">
                 <h4 className="text-base font-medium text-slate-900 dark:text-white mb-4">Customer Details</h4>
-                <div className="grid grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Name</p>
                     <p className="text-sm text-blue-600 dark:text-blue-400 flex items-center gap-1">
@@ -684,7 +684,7 @@ export default function QuoteDetailPanel({ quote, onClose, onEdit, onRefresh }: 
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-8 mt-4">
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mt-4">
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Billing Address</p>
                     {formatAddress(quote.billingAddress).map((line, i) => (
