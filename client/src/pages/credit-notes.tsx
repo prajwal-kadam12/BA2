@@ -717,231 +717,247 @@ export default function CreditNotes() {
     }
   };
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="h-full flex w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup key={selectedCreditNote ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedCreditNote ? 31 : 100}
-          minSize={selectedCreditNote ? 31 : 100}
-          maxSize={selectedCreditNote ? 31 : 100}
-          className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
-        >
-          <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-              <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
-                        <span className={selectedCreditNote ? "text-base sm:text-lg lg:text-xl line-clamp-2" : "text-xl line-clamp-2"}>
-                          All Credit Notes
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-56">
-                      <DropdownMenuItem onClick={() => setActiveFilter("all")}>All Credit Notes</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("open")}>Open</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("closed")}>Closed</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("void")}>Void</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <span className="text-sm text-slate-400">({creditNotes.length})</span>
+      <ResizablePanelGroup key={`${selectedCreditNote ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedCreditNote) && (
+          <ResizablePanel
+            defaultSize={isCompact ? 100 : (selectedCreditNote ? 31 : 100)}
+            minSize={isCompact ? 100 : (selectedCreditNote ? 31 : 100)}
+            maxSize={isCompact ? 100 : (selectedCreditNote ? 31 : 100)}
+            className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
+          >
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
+                          <span className={selectedCreditNote ? "text-base sm:text-lg lg:text-xl line-clamp-2" : "text-xl line-clamp-2"}>
+                            All Credit Notes
+                          </span>
+                          <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuItem onClick={() => setActiveFilter("all")}>All Credit Notes</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("open")}>Open</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("closed")}>Closed</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("void")}>Void</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <span className="text-sm text-slate-400">({creditNotes.length})</span>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedCreditNote ? (
-                  isSearchVisible ? (
-                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                <div className="flex items-center gap-2">
+                  {selectedCreditNote ? (
+                    isSearchVisible ? (
+                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          autoFocus
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 px-0"
+                        data-testid="button-search-compact"
+                        onClick={() => setIsSearchVisible(true)}
+                      >
+                        <Search className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    )
+                  ) : (
+                    <div className="relative w-[240px] hidden sm:block">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        autoFocus
-                        placeholder="Search..."
+                        placeholder="Search credit notes..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onBlur={() => !searchQuery && setIsSearchVisible(false)}
                         className="pl-9 h-9"
+                        data-testid="input-search-credit-notes"
                       />
                     </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 px-0"
-                      data-testid="button-search-compact"
-                      onClick={() => setIsSearchVisible(true)}
-                    >
-                      <Search className="h-4 w-4 text-slate-500" />
-                    </Button>
-                  )
-                ) : (
-                  <div className="relative w-[240px] hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      placeholder="Search credit notes..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9"
-                      data-testid="input-search-credit-notes"
-                    />
-                  </div>
-                )}
-
-                <Button
-                  onClick={() => setLocation('/credit-notes/create')}
-                  className={cn(
-                    "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9",
-                    selectedCreditNote && "w-9 px-0"
                   )}
-                  size={selectedCreditNote ? "icon" : "default"}
-                  data-testid="button-new-credit-note"
-                >
-                  <Plus className="h-4 w-4" />
-                  {!selectedCreditNote && <span>New</span>}
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1">
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <ArrowUpDown className="mr-2 h-4 w-4" />
-                        <span>Sort by</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem>Date</DropdownMenuItem>
-                          <DropdownMenuItem>Credit Number</DropdownMenuItem>
-                          <DropdownMenuItem>Customer Name</DropdownMenuItem>
-                          <DropdownMenuItem>Amount</DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={fetchCreditNotes}>
-                      <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
 
-            <div className="flex-1 overflow-auto scrollbar-hide bg-white" data-testid="container-credit-notes-list">
-              {isLoading ? (
-                <div className="px-4 py-8 text-center text-slate-500">Loading...</div>
-              ) : filteredCreditNotes.length === 0 ? (
-                <div className="px-4 py-8 text-center text-slate-500">No credit notes found</div>
-              ) : selectedCreditNote ? (
-                <div className="flex flex-col divide-y divide-slate-100 bg-white">
-                  {paginatedItems.map((note: any) => (
-                    <div
-                      key={note.id}
-                      className={`p-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100 ${selectedCreditNote?.id === note.id ? 'bg-blue-50/50' : ''}`}
-                      onClick={() => fetchCreditNoteDetail(note.id)}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            className="h-4 w-4 rounded border-slate-300"
-                            checked={selectedIds.has(note.id)}
-                            onCheckedChange={(checked) => toggleSelect(note.id)}
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <span className="font-medium text-slate-900 text-sm">{note.customerName}</span>
-                        </div>
-                        <span className="font-semibold text-slate-900 text-sm">{formatCurrency(note.total)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 pl-6 text-xs text-slate-500 mb-1">
-                        <span>{note.creditNoteNumber}</span>
-                        <span>•</span>
-                        <span>{formatDate(note.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2 pl-6">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider ${note.status?.toLowerCase() === 'closed' ? 'text-green-600' : 'text-blue-600'
-                          }`}>{note.status}</span>
-                      </div>
-                    </div>
-                  ))}
+                  <Button
+                    onClick={() => setLocation('/credit-notes/create')}
+                    className={cn(
+                      "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9",
+                      selectedCreditNote && "w-9 px-0"
+                    )}
+                    size={selectedCreditNote ? "icon" : "default"}
+                    data-testid="button-new-credit-note"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {!selectedCreditNote && <span>New</span>}
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 p-1">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          <span>Sort by</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem>Date</DropdownMenuItem>
+                            <DropdownMenuItem>Credit Number</DropdownMenuItem>
+                            <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                            <DropdownMenuItem>Amount</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={fetchCreditNotes}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              ) : (
-                <table className="w-full">
-                  <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
-                    <tr className="text-left text-xs font-medium text-slate-500 uppercase">
-                      <th className="px-4 py-3 w-10">
-                        <Checkbox
-                          checked={selectedIds.size === filteredCreditNotes.length && filteredCreditNotes.length > 0}
-                          onCheckedChange={toggleSelectAll}
-                          data-testid="checkbox-select-all"
-                        />
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold">Date</th>
-                      <th className="px-4 py-3 text-left font-semibold">Credit Note#</th>
-                      <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference Number</th>
-                      <th className="px-4 py-3 text-left font-semibold">Customer Name</th>
-                      <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Invoice#</th>
-                      <th className="px-4 py-3 text-left font-semibold">Status</th>
-                      <th className="px-4 py-3 text-right font-semibold">Amount</th>
-                      <th className="px-4 py-3 text-right font-semibold">Balance</th>
-                      <th className="px-4 py-3 w-10">
-                        <Search className="h-4 w-4 text-slate-400" />
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {paginatedItems.map((cn: any) => (
-                      <tr
-                        key={cn.id}
-                        className={`hover-elevate cursor-pointer ${selectedCreditNote?.id === cn.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                        onClick={() => fetchCreditNoteDetail(cn.id)}
-                        data-testid={`row-credit-note-${cn.id}`}
+              </div>
+
+              <div className="flex-1 overflow-auto scrollbar-hide bg-white" data-testid="container-credit-notes-list">
+                {isLoading ? (
+                  <div className="px-4 py-8 text-center text-slate-500">Loading...</div>
+                ) : filteredCreditNotes.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-slate-500">No credit notes found</div>
+                ) : selectedCreditNote ? (
+                  <div className="flex flex-col divide-y divide-slate-100 bg-white">
+                    {paginatedItems.map((note: any) => (
+                      <div
+                        key={note.id}
+                        className={`p-3 cursor-pointer hover:bg-slate-50 transition-colors border-b border-slate-100 ${selectedCreditNote?.id === note.id ? 'bg-blue-50/50' : ''}`}
+                        onClick={() => fetchCreditNoteDetail(note.id)}
                       >
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedIds.has(cn.id)}
-                            onCheckedChange={() => toggleSelect(cn.id)}
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-sm">{formatDate(cn.date)}</td>
-                        <td className="px-4 py-3 text-sm text-blue-600 font-medium">{cn.creditNoteNumber}</td>
-                        <td className="px-4 py-3 text-sm">{cn.referenceNumber || '-'}</td>
-                        <td className="px-4 py-3 text-sm">{cn.customerName}</td>
-                        <td className="px-4 py-3 text-sm">{cn.invoiceNumber || '-'}</td>
-                        <td className="px-4 py-3">
-                          <Badge className={getStatusBadgeStyles(cn.status)}>
-                            {cn.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right">{formatCurrency(cn.total)}</td>
-                        <td className="px-4 py-3 text-sm text-right">{formatCurrency(cn.creditsRemaining)}</td>
-                        <td className="px-4 py-3"></td>
-                      </tr>
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-2">
+                            <Checkbox
+                              className="h-4 w-4 rounded border-slate-300"
+                              checked={selectedIds.has(note.id)}
+                              onCheckedChange={(checked) => toggleSelect(note.id)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <span className="font-medium text-slate-900 text-sm">{note.customerName}</span>
+                          </div>
+                          <span className="font-semibold text-slate-900 text-sm">{formatCurrency(note.total)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 pl-6 text-xs text-slate-500 mb-1">
+                          <span>{note.creditNoteNumber}</span>
+                          <span>•</span>
+                          <span>{formatDate(note.date)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 pl-6">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${note.status?.toLowerCase() === 'closed' ? 'text-green-600' : 'text-blue-600'
+                            }`}>{note.status}</span>
+                        </div>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0">
+                      <tr className="text-left text-xs font-medium text-slate-500 uppercase">
+                        <th className="px-4 py-3 w-10">
+                          <Checkbox
+                            checked={selectedIds.size === filteredCreditNotes.length && filteredCreditNotes.length > 0}
+                            onCheckedChange={toggleSelectAll}
+                            data-testid="checkbox-select-all"
+                          />
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold">Date</th>
+                        <th className="px-4 py-3 text-left font-semibold">Credit Note#</th>
+                        <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference Number</th>
+                        <th className="px-4 py-3 text-left font-semibold">Customer Name</th>
+                        <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Invoice#</th>
+                        <th className="px-4 py-3 text-left font-semibold">Status</th>
+                        <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                        <th className="px-4 py-3 text-right font-semibold">Balance</th>
+                        <th className="px-4 py-3 w-10">
+                          <Search className="h-4 w-4 text-slate-400" />
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                      {paginatedItems.map((cn: any) => (
+                        <tr
+                          key={cn.id}
+                          className={`hover-elevate cursor-pointer ${selectedCreditNote?.id === cn.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                          onClick={() => fetchCreditNoteDetail(cn.id)}
+                          data-testid={`row-credit-note-${cn.id}`}
+                        >
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.has(cn.id)}
+                              onCheckedChange={() => toggleSelect(cn.id)}
+                            />
+                          </td>
+                          <td className="px-4 py-3 text-sm">{formatDate(cn.date)}</td>
+                          <td className="px-4 py-3 text-sm text-blue-600 font-medium">{cn.creditNoteNumber}</td>
+                          <td className="px-4 py-3 text-sm">{cn.referenceNumber || '-'}</td>
+                          <td className="px-4 py-3 text-sm">{cn.customerName}</td>
+                          <td className="px-4 py-3 text-sm">{cn.invoiceNumber || '-'}</td>
+                          <td className="px-4 py-3">
+                            <Badge className={getStatusBadgeStyles(cn.status)}>
+                              {cn.status}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right">{formatCurrency(cn.total)}</td>
+                          <td className="px-4 py-3 text-sm text-right">{formatCurrency(cn.creditsRemaining)}</td>
+                          <td className="px-4 py-3"></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {filteredCreditNotes.length > 0 && (
+                <div className="border-t bg-white dark:bg-slate-900 flex-shrink-0" data-testid="pagination-wrapper">
+                  <TablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                  />
+                </div>
               )}
             </div>
-
-            {filteredCreditNotes.length > 0 && (
-              <div className="border-t bg-white dark:bg-slate-900 flex-shrink-0" data-testid="pagination-wrapper">
-                <TablePagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={totalItems}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={goToPage}
-                />
-              </div>
-            )}
-          </div>
-        </ResizablePanel>
+          </ResizablePanel>
+        )}
 
         {selectedCreditNote && (
           <>
-            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white h-full">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white h-full">
               <div className="h-full flex flex-col overflow-hidden bg-white border-l border-slate-200 dark:border-slate-700 min-h-0">
                 <CreditNoteDetailPanel
                   creditNote={selectedCreditNote}

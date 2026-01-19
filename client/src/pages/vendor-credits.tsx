@@ -549,295 +549,311 @@ export default function VendorCredits() {
     }
   };
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="h-screen flex w-full overflow-hidden bg-slate-50 animate-in fade-in duration-500">
-      <ResizablePanelGroup key={selectedCredit ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedCredit ? 33 : 100}
-          minSize={selectedCredit ? 33 : 100}
-          maxSize={selectedCredit ? 33 : 100}
-          className="flex flex-col overflow-hidden bg-white min-w-[25%]"
-        >
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 h-[73px]">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+      <ResizablePanelGroup key={`${selectedCredit ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedCredit) && (
+          <ResizablePanel
+            defaultSize={isCompact ? 100 : (selectedCredit ? 33 : 100)}
+            minSize={isCompact ? 100 : (selectedCredit ? 33 : 100)}
+            maxSize={isCompact ? 100 : (selectedCredit ? 33 : 100)}
+            className="flex flex-col overflow-hidden bg-white min-w-[25%]"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 h-[73px]">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors"
+                      >
+                        All Vendor Credits
+                        <ChevronDown className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuItem onClick={() => { }}>
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { }}>
+                        Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { }}>
+                        Draft
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { }}>
+                        Closed
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { }}>
+                        Void
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <span className="text-sm text-slate-400">({vendorCredits.length})</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {selectedCredit ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 px-0"
+                      data-testid="button-search-compact"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search vendor credits..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-vendor-credits"
+                    />
+                  </div>
+                )}
+
+                <Button
+                  className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedCredit ? 'w-9 px-0' : ''}`}
+                  size={selectedCredit ? "icon" : "default"}
+                  onClick={() => setLocation('/vendor-credits/new')}
+                  data-testid="button-add-vendor-credit"
+                >
+                  <Plus className="h-4 w-4" />
+                  {!selectedCredit && <span>New</span>}
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors"
-                    >
-                      All Vendor Credits
-                      <ChevronDown className="h-4 w-4 text-slate-500" />
+                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuItem onClick={() => { }}>
-                      All
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span>Sort by</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Date</DropdownMenuItem>
+                          <DropdownMenuItem>Credit Number</DropdownMenuItem>
+                          <DropdownMenuItem>Vendor Name</DropdownMenuItem>
+                          <DropdownMenuItem>Amount</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <Download className="mr-2 h-4 w-4" /> Export Vendor Credits
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { }}>
-                      Open
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { }}>
-                      Draft
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { }}>
-                      Closed
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => { }}>
-                      Void
+                    <DropdownMenuItem onClick={() => refetch()}>
+                      <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <span className="text-sm text-slate-400">({vendorCredits.length})</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {selectedCredit ? (
-                isSearchVisible ? (
-                  <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      autoFocus
-                      placeholder="Search..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onBlur={() => !searchQuery && setIsSearchVisible(false)}
-                      className="pl-9 h-9"
-                    />
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 px-0"
-                    data-testid="button-search-compact"
-                    onClick={() => setIsSearchVisible(true)}
-                  >
-                    <Search className="h-4 w-4 text-slate-400" />
-                  </Button>
-                )
-              ) : (
-                <div className="relative w-[240px] hidden sm:block">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search vendor credits..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-9"
-                    data-testid="input-search-vendor-credits"
-                  />
+
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : vendorCredits.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Receipt className="h-8 w-8 text-muted-foreground" />
                 </div>
-              )}
-
-              <Button
-                className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedCredit ? 'w-9 px-0' : ''}`}
-                size={selectedCredit ? "icon" : "default"}
-                onClick={() => setLocation('/vendor-credits/new')}
-                data-testid="button-add-vendor-credit"
-              >
-                <Plus className="h-4 w-4" />
-                {!selectedCredit && <span>New</span>}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 p-1">
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <ArrowUpDown className="mr-2 h-4 w-4" />
-                      <span>Sort by</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuItem>Date</DropdownMenuItem>
-                        <DropdownMenuItem>Credit Number</DropdownMenuItem>
-                        <DropdownMenuItem>Vendor Name</DropdownMenuItem>
-                        <DropdownMenuItem>Amount</DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Download className="mr-2 h-4 w-4" /> Export Vendor Credits
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => refetch()}>
-                    <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-
-
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : vendorCredits.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-              <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                <Receipt className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2" data-testid="text-vendor-credits-empty">No vendor credits</h3>
-              <p className="text-muted-foreground mb-4 max-w-sm text-sm">
-                Record credits from vendors for returns or adjustments to apply against future bills.
-              </p>
-              <Button
-                className="gap-2"
-                onClick={() => setLocation('/vendor-credits/new')}
-                data-testid="button-add-first-vendor-credit"
-              >
-                <Plus className="h-4 w-4" /> Add Your First Vendor Credit
-              </Button>
-            </div>
-          ) : selectedCredit ? (
-            <div className="flex-1 overflow-auto scrollbar-hide">
-              {paginatedItems.map((credit) => (
-                <div
-                  key={credit.id}
-                  className={`p-3 border-b cursor-pointer transition-colors ${selectedCredit?.id === credit.id ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-muted/50'
-                    }`}
-                  onClick={() => setSelectedCredit(credit)}
-                  data-testid={`row-vendor-credit-${credit.id}`}
+                <h3 className="text-lg font-semibold mb-2" data-testid="text-vendor-credits-empty">No vendor credits</h3>
+                <p className="text-muted-foreground mb-4 max-w-sm text-sm">
+                  Record credits from vendors for returns or adjustments to apply against future bills.
+                </p>
+                <Button
+                  className="gap-2"
+                  onClick={() => setLocation('/vendor-credits/new')}
+                  data-testid="button-add-first-vendor-credit"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-start gap-2">
-                      <Checkbox
-                        onClick={(e) => e.stopPropagation()}
-                        data-testid={`checkbox-vendor-credit-${credit.id}`}
-                      />
-                      <div>
-                        <p className="font-medium text-sm">{credit.vendorName}</p>
-                        <p className="text-primary text-xs">{credit.creditNumber} | {formatDate(credit.date)}</p>
-                        <Badge
-                          variant="outline"
-                          className={`mt-1 text-xs ${credit.status === 'OPEN' ? 'text-blue-600 border-blue-200' :
-                            credit.status === 'CLOSED' ? 'text-gray-600 border-gray-200' :
-                              'text-yellow-600 border-yellow-200'
-                            }`}
-                        >
-                          {credit.status}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-sm">{formatCurrency(credit.amount)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
+                  <Plus className="h-4 w-4" /> Add Your First Vendor Credit
+                </Button>
+              </div>
+            ) : selectedCredit ? (
               <div className="flex-1 overflow-auto scrollbar-hide">
-                <table className="w-full">
-                  <thead className="bg-muted/50 sticky top-0">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
-                        <Checkbox data-testid="checkbox-select-all" />
-                      </th>
-                      <th className="px-4 py-3 text-left font-semibold">Date</th>
-                      <th className="px-4 py-3 text-left font-semibold">Credit Note#</th>
-                      <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference Number</th>
-                      <th className="px-4 py-3 text-left font-semibold">Vendor Name</th>
-                      <th className="px-4 py-3 text-left font-semibold">Status</th>
-                      <th className="px-4 py-3 text-right font-semibold">Amount</th>
-                      <th className="px-4 py-3 text-right font-semibold">Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {paginatedItems.map((credit) => (
-                      <tr
-                        key={credit.id}
-                        className="hover:bg-muted/30 cursor-pointer transition-colors"
-                        onClick={() => setSelectedCredit(credit)}
-                        data-testid={`row-vendor-credit-${credit.id}`}
-                      >
-                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                          <Checkbox data-testid={`checkbox-vendor-credit-${credit.id}`} />
-                        </td>
-                        <td className="px-4 py-3 text-sm">{formatDate(credit.date)}</td>
-                        <td className="px-4 py-3 text-sm font-medium text-primary">{credit.creditNumber}</td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground">{credit.referenceNumber || credit.orderNumber || '-'}</td>
-                        <td className="px-4 py-3 text-sm uppercase">{credit.vendorName}</td>
-                        <td className="px-4 py-3 text-sm">
+                {paginatedItems.map((credit) => (
+                  <div
+                    key={credit.id}
+                    className={`p-3 border-b cursor-pointer transition-colors ${selectedCredit?.id === credit.id ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-muted/50'
+                      }`}
+                    onClick={() => setSelectedCredit(credit)}
+                    data-testid={`row-vendor-credit-${credit.id}`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2">
+                        <Checkbox
+                          onClick={(e) => e.stopPropagation()}
+                          data-testid={`checkbox-vendor-credit-${credit.id}`}
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{credit.vendorName}</p>
+                          <p className="text-primary text-xs">{credit.creditNumber} | {formatDate(credit.date)}</p>
                           <Badge
                             variant="outline"
-                            className={`${credit.status === 'OPEN' ? 'text-blue-600 border-blue-200 bg-blue-50' :
-                              credit.status === 'CLOSED' ? 'text-gray-600 border-gray-200 bg-gray-50' :
-                                'text-yellow-600 border-yellow-200 bg-yellow-50'
+                            className={`mt-1 text-xs ${credit.status === 'OPEN' ? 'text-blue-600 border-blue-200' :
+                              credit.status === 'CLOSED' ? 'text-gray-600 border-gray-200' :
+                                'text-yellow-600 border-yellow-200'
                               }`}
                           >
                             {credit.status}
                           </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right font-medium">
-                          {formatCurrency(credit.amount)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right">
-                          {formatCurrency(credit.balance)}
-                        </td>
-                        <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" data-testid={`button-vendor-credit-actions-${credit.id}`}>
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => setLocation(`/vendor-credits/${credit.id}/edit`)}
-                                data-testid={`action-edit-${credit.id}`}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem data-testid={`action-clone-${credit.id}`}>
-                                <FileText className="mr-2 h-4 w-4" />
-                                Clone
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDelete(credit.id)}
-                                data-testid={`action-delete-${credit.id}`}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-sm">{formatCurrency(credit.amount)}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              {vendorCredits.length > 0 && (
-                <div className="flex-none border-t border-slate-200 bg-white">
-                  <TablePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={goToPage}
-                  />
+            ) : (
+              <>
+                <div className="flex-1 overflow-auto scrollbar-hide">
+                  <table className="w-full">
+                    <thead className="bg-muted/50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase">
+                          <Checkbox data-testid="checkbox-select-all" />
+                        </th>
+                        <th className="px-4 py-3 text-left font-semibold">Date</th>
+                        <th className="px-4 py-3 text-left font-semibold">Credit Note#</th>
+                        <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference Number</th>
+                        <th className="px-4 py-3 text-left font-semibold">Vendor Name</th>
+                        <th className="px-4 py-3 text-left font-semibold">Status</th>
+                        <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                        <th className="px-4 py-3 text-right font-semibold">Balance</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {paginatedItems.map((credit) => (
+                        <tr
+                          key={credit.id}
+                          className="hover:bg-muted/30 cursor-pointer transition-colors"
+                          onClick={() => setSelectedCredit(credit)}
+                          data-testid={`row-vendor-credit-${credit.id}`}
+                        >
+                          <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox data-testid={`checkbox-vendor-credit-${credit.id}`} />
+                          </td>
+                          <td className="px-4 py-3 text-sm">{formatDate(credit.date)}</td>
+                          <td className="px-4 py-3 text-sm font-medium text-primary">{credit.creditNumber}</td>
+                          <td className="px-4 py-3 text-sm text-muted-foreground">{credit.referenceNumber || credit.orderNumber || '-'}</td>
+                          <td className="px-4 py-3 text-sm uppercase">{credit.vendorName}</td>
+                          <td className="px-4 py-3 text-sm">
+                            <Badge
+                              variant="outline"
+                              className={`${credit.status === 'OPEN' ? 'text-blue-600 border-blue-200 bg-blue-50' :
+                                credit.status === 'CLOSED' ? 'text-gray-600 border-gray-200 bg-gray-50' :
+                                  'text-yellow-600 border-yellow-200 bg-yellow-50'
+                                }`}
+                            >
+                              {credit.status}
+                            </Badge>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right font-medium">
+                            {formatCurrency(credit.amount)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right">
+                            {formatCurrency(credit.balance)}
+                          </td>
+                          <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" data-testid={`button-vendor-credit-actions-${credit.id}`}>
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => setLocation(`/vendor-credits/${credit.id}/edit`)}
+                                  data-testid={`action-edit-${credit.id}`}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem data-testid={`action-clone-${credit.id}`}>
+                                  <FileText className="mr-2 h-4 w-4" />
+                                  Clone
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={() => handleDelete(credit.id)}
+                                  data-testid={`action-delete-${credit.id}`}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              )}
-            </>
-          )}
-        </ResizablePanel>
+                {vendorCredits.length > 0 && (
+                  <div className="flex-none border-t border-slate-200 bg-white">
+                    <TablePagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={totalItems}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={goToPage}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </ResizablePanel>
+        )}
 
         {selectedCredit && (
           <>
-            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
               <div className="flex flex-col overflow-hidden bg-muted/20 h-full">
                 <div className="flex items-center justify-between gap-2 p-3 border-b bg-background">
                   <h2 className="font-semibold text-lg">{selectedCredit.creditNumber}</h2>

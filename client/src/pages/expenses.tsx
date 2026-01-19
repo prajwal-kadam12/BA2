@@ -706,284 +706,300 @@ export default function Expenses() {
     }
   };
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup key={selectedExpense ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedExpense ? 33 : 100}
-          minSize={selectedExpense ? 33 : 100}
-          maxSize={selectedExpense ? 33 : 100}
-          className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
-        >
-          {/* Left side - Expense List */}
-          <div className="flex-1 flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between gap-4 p-4 border-b border-border/60 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="text-lg font-semibold gap-1 text-left whitespace-normal h-auto" data-testid="dropdown-expense-filter">
-                      <span className="line-clamp-2">All Expenses</span>
-                      <ChevronDown className="h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start">
-                    <DropdownMenuItem onClick={() => setActiveTab("all-expenses")} data-testid="filter-all">All Expenses</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab("receipts-inbox")} data-testid="filter-receipts">Receipts Inbox</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+      <ResizablePanelGroup key={`${selectedExpense ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedExpense) && (
+          <ResizablePanel
+            defaultSize={isCompact ? 100 : (selectedExpense ? 33 : 100)}
+            minSize={isCompact ? 100 : (selectedExpense ? 33 : 100)}
+            maxSize={isCompact ? 100 : (selectedExpense ? 33 : 100)}
+            className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
+          >
+            {/* Left side - Expense List */}
+            <div className="flex-1 flex flex-col h-full overflow-hidden">
+              <div className="flex items-center justify-between gap-4 p-4 border-b border-border/60 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="text-lg font-semibold gap-1 text-left whitespace-normal h-auto" data-testid="dropdown-expense-filter">
+                        <span className="line-clamp-2">All Expenses</span>
+                        <ChevronDown className="h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => setActiveTab("all-expenses")} data-testid="filter-all">All Expenses</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveTab("receipts-inbox")} data-testid="filter-receipts">Receipts Inbox</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-              <div className="flex items-center gap-2">
-                {selectedExpense ? (
-                  isSearchVisible ? (
-                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                <div className="flex items-center gap-2">
+                  {selectedExpense ? (
+                    isSearchVisible ? (
+                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          autoFocus
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setIsSearchVisible(true)}
+                      >
+                        <Search className="h-4 w-4 text-slate-400" />
+                      </Button>
+                    )
+                  ) : (
+                    <div className="relative w-[240px] hidden sm:block">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        autoFocus
-                        placeholder="Search..."
+                        placeholder="Search expenses..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onBlur={() => !searchQuery && setIsSearchVisible(false)}
                         className="pl-9 h-9"
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => setIsSearchVisible(true)}
-                    >
-                      <Search className="h-4 w-4 text-slate-400" />
-                    </Button>
-                  )
-                ) : (
-                  <div className="relative w-[240px] hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      placeholder="Search expenses..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9"
-                      data-testid="input-search-expenses"
-                    />
-                  </div>
-                )}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      className={`gap-1 bg-indigo-600 hover:bg-indigo-700 h-9 ${selectedExpense ? 'w-9 px-0 justify-center' : ''}`}
-                      data-testid="button-new-expense"
-                      size={selectedExpense ? "icon" : "default"}
-                    >
-                      {selectedExpense ? (
-                        <Plus className="h-4 w-4" />
-                      ) : (
-                        <>New <ChevronDown className="h-4 w-4" /></>
-                      )}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={() => setShowRecordExpense(true)} className="gap-2 cursor-pointer">
-                      <Receipt className="h-4 w-4" />
-                      Record Expense
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowRecordMileage(true)} className="gap-2 cursor-pointer">
-                      <Car className="h-4 w-4" />
-                      Record Mileage
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1">
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <ArrowUpDown className="mr-2 h-4 w-4" />
-                        <span>Sort by</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem onClick={() => setSortBy('date')}>Date</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setSortBy('amount')}>Amount</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setSortBy('expenseAccount')}>Category</DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem data-testid="menu-refresh" onClick={() => fetchExpenses()}>
-                      <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
-                    </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-preferences">
-                      <Settings className="h-4 w-4 mr-2" /> Preferences
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-hidden">
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-                <TabsContent value="receipts-inbox" className="h-full m-0">
-                  <ScrollArea className="h-full">
-                    <div className="p-4">
-                      <Card className="border-dashed">
-                        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                          <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                            <Inbox className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                          <h3 className="text-lg font-semibold mb-2" data-testid="text-receipts-empty">No receipts in inbox</h3>
-                          <p className="text-muted-foreground mb-4 max-w-sm">
-                            Upload receipts and documents here to automatically extract expense information.
-                          </p>
-                          <Button className="gap-2" data-testid="button-upload-receipt">
-                            <Upload className="h-4 w-4" /> Upload Receipt
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-
-                <TabsContent value="all-expenses" className="flex-1 flex flex-col min-h-0 mt-0 data-[state=inactive]:hidden">
-                  <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
-                    <div className="p-0">
-                      {isLoading ? (
-                        <div className="flex items-center justify-center py-16">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                        </div>
-                      ) : expenses.length === 0 ? (
-                        <div className="p-4">
-                          <Card className="border-dashed">
-                            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                              <div className="h-24 w-24 rounded-lg bg-slate-100 flex items-center justify-center mb-6">
-                                <Receipt className="h-12 w-12 text-slate-400" />
-                              </div>
-                              <h2 className="text-xl font-semibold mb-2" data-testid="text-expenses-empty-title">Time To Manage Your Expenses!</h2>
-                              <p className="text-muted-foreground mb-6 max-w-md">
-                                Create and manage expenses that are part of your organization's operating costs.
-                              </p>
-                              <div className="flex flex-col gap-3">
-                                <Button
-                                  className="gap-2 bg-indigo-600 hover:bg-indigo-700"
-                                  onClick={() => setShowRecordExpense(true)}
-                                  data-testid="button-record-expense-empty"
-                                >
-                                  RECORD EXPENSE
-                                </Button>
-                                <Button
-                                  variant="link"
-                                  className="text-indigo-600"
-                                  onClick={() => setShowImportDialog(true)}
-                                  data-testid="button-import-expenses"
-                                >
-                                  Import Expenses
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      ) : (
-                        <table className="w-full">
-                          <thead className="bg-slate-50/50 sticky top-0 z-10 border-b border-slate-100">
-                            <tr className="text-left text-[11px] uppercase text-slate-500 font-bold tracking-wider">
-                              {selectedExpense ? (
-                                <th className="px-4 py-3">All Expenses <ChevronDown className="inline h-3 w-3 ml-1" /></th>
-                              ) : (
-                                <>
-                                  <th className="p-3 w-10">
-                                    <Checkbox data-testid="checkbox-select-all" />
-                                  </th>
-                                  <th className="p-3">Date</th>
-                                  <th className="p-3">Expense Account</th>
-                                  <th className="p-3">Vendor Name</th>
-                                  <th className="p-3">Paid Through</th>
-                                  <th className="p-3">Customer Name</th>
-                                  <th className="p-3 text-right">Amount</th>
-                                </>
-                              )}
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {paginatedItems.map((expense) => (
-                              <tr
-                                key={expense.id}
-                                className={`border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${selectedExpense?.id === expense.id ? 'bg-[#F3F4FB]' : ''}`}
-                                onClick={() => handleExpenseClick(expense)}
-                                data-testid={`row-expense-${expense.id}`}
-                              >
-                                {selectedExpense ? (
-                                  <td className="p-3">
-                                    <div className="flex items-center justify-between w-full">
-                                      <div className="flex items-center gap-3">
-                                        <Checkbox
-                                          data-testid={`checkbox-expense-${expense.id}`}
-                                          onClick={(e) => e.stopPropagation()}
-                                          className="rounded-[4px] border-slate-300"
-                                        />
-                                        <div className="flex flex-col gap-0.5">
-                                          <span className="text-[14px] font-semibold text-[#334155] leading-tight">
-                                            {expense.expenseAccount}
-                                          </span>
-                                          <div className="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
-                                            <span>{expense.date ? format(new Date(expense.date), 'dd/MM/yyyy') : '-'}</span>
-                                            <span className="text-slate-300">•</span>
-                                            <span>{expense.vendorName || '-'}</span>
-                                          </div>
-                                        </div>
-                                      </div>
-                                      <span className="text-[14px] font-semibold text-[#1e293b]">
-                                        {formatCurrency(expense.amount)}
-                                      </span>
-                                    </div>
-                                  </td>
-                                ) : (
-                                  <>
-                                    <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                                      <Checkbox data-testid={`checkbox-expense-${expense.id}`} />
-                                    </td>
-                                    <td className="p-3 text-sm">{expense.date}</td>
-                                    <td className="p-3 text-sm font-medium">{expense.expenseAccount}</td>
-                                    <td className="p-3 text-sm">{expense.vendorName || '-'}</td>
-                                    <td className="p-3 text-sm">{expense.paidThrough || '-'}</td>
-                                    <td className="p-3 text-sm">{expense.customerName || '-'}</td>
-                                    <td className="p-3 text-sm text-right font-semibold">
-                                      {formatCurrency(expense.amount)}
-                                    </td>
-                                  </>
-                                )}
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
-                  </div>
-                  {filteredExpenses.length > 0 && (
-                    <div className="flex-none border-t border-slate-200 bg-white">
-                      <TablePagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={totalItems}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={goToPage}
+                        data-testid="input-search-expenses"
                       />
                     </div>
                   )}
-                </TabsContent>
-              </Tabs>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        className={`gap-1 bg-indigo-600 hover:bg-indigo-700 h-9 ${selectedExpense ? 'w-9 px-0 justify-center' : ''}`}
+                        data-testid="button-new-expense"
+                        size={selectedExpense ? "icon" : "default"}
+                      >
+                        {selectedExpense ? (
+                          <Plus className="h-4 w-4" />
+                        ) : (
+                          <>New <ChevronDown className="h-4 w-4" /></>
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem onClick={() => setShowRecordExpense(true)} className="gap-2 cursor-pointer">
+                        <Receipt className="h-4 w-4" />
+                        Record Expense
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setShowRecordMileage(true)} className="gap-2 cursor-pointer">
+                        <Car className="h-4 w-4" />
+                        Record Mileage
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 p-1">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          <span>Sort by</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem onClick={() => setSortBy('date')}>Date</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('amount')}>Amount</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setSortBy('expenseAccount')}>Category</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem data-testid="menu-refresh" onClick={() => fetchExpenses()}>
+                        <RefreshCw className="h-4 w-4 mr-2" /> Refresh List
+                      </DropdownMenuItem>
+                      <DropdownMenuItem data-testid="menu-preferences">
+                        <Settings className="h-4 w-4 mr-2" /> Preferences
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-hidden">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+                  <TabsContent value="receipts-inbox" className="h-full m-0">
+                    <ScrollArea className="h-full">
+                      <div className="p-4">
+                        <Card className="border-dashed">
+                          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                            <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                              <Inbox className="h-8 w-8 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-lg font-semibold mb-2" data-testid="text-receipts-empty">No receipts in inbox</h3>
+                            <p className="text-muted-foreground mb-4 max-w-sm">
+                              Upload receipts and documents here to automatically extract expense information.
+                            </p>
+                            <Button className="gap-2" data-testid="button-upload-receipt">
+                              <Upload className="h-4 w-4" /> Upload Receipt
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </ScrollArea>
+                  </TabsContent>
+
+                  <TabsContent value="all-expenses" className="flex-1 flex flex-col min-h-0 mt-0 data-[state=inactive]:hidden">
+                    <div className="flex-1 overflow-auto scrollbar-hide min-h-0">
+                      <div className="p-0">
+                        {isLoading ? (
+                          <div className="flex items-center justify-center py-16">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                          </div>
+                        ) : expenses.length === 0 ? (
+                          <div className="p-4">
+                            <Card className="border-dashed">
+                              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                                <div className="h-24 w-24 rounded-lg bg-slate-100 flex items-center justify-center mb-6">
+                                  <Receipt className="h-12 w-12 text-slate-400" />
+                                </div>
+                                <h2 className="text-xl font-semibold mb-2" data-testid="text-expenses-empty-title">Time To Manage Your Expenses!</h2>
+                                <p className="text-muted-foreground mb-6 max-w-md">
+                                  Create and manage expenses that are part of your organization's operating costs.
+                                </p>
+                                <div className="flex flex-col gap-3">
+                                  <Button
+                                    className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+                                    onClick={() => setShowRecordExpense(true)}
+                                    data-testid="button-record-expense-empty"
+                                  >
+                                    RECORD EXPENSE
+                                  </Button>
+                                  <Button
+                                    variant="link"
+                                    className="text-indigo-600"
+                                    onClick={() => setShowImportDialog(true)}
+                                    data-testid="button-import-expenses"
+                                  >
+                                    Import Expenses
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </div>
+                        ) : (
+                          <table className="w-full">
+                            <thead className="bg-slate-50/50 sticky top-0 z-10 border-b border-slate-100">
+                              <tr className="text-left text-[11px] uppercase text-slate-500 font-bold tracking-wider">
+                                {selectedExpense ? (
+                                  <th className="px-4 py-3">All Expenses <ChevronDown className="inline h-3 w-3 ml-1" /></th>
+                                ) : (
+                                  <>
+                                    <th className="p-3 w-10">
+                                      <Checkbox data-testid="checkbox-select-all" />
+                                    </th>
+                                    <th className="p-3">Date</th>
+                                    <th className="p-3">Expense Account</th>
+                                    <th className="p-3">Vendor Name</th>
+                                    <th className="p-3">Paid Through</th>
+                                    <th className="p-3">Customer Name</th>
+                                    <th className="p-3 text-right">Amount</th>
+                                  </>
+                                )}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {paginatedItems.map((expense) => (
+                                <tr
+                                  key={expense.id}
+                                  className={`border-b border-slate-100 hover:bg-slate-50 transition-colors cursor-pointer ${selectedExpense?.id === expense.id ? 'bg-[#F3F4FB]' : ''}`}
+                                  onClick={() => handleExpenseClick(expense)}
+                                  data-testid={`row-expense-${expense.id}`}
+                                >
+                                  {selectedExpense ? (
+                                    <td className="p-3">
+                                      <div className="flex items-center justify-between w-full">
+                                        <div className="flex items-center gap-3">
+                                          <Checkbox
+                                            data-testid={`checkbox-expense-${expense.id}`}
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="rounded-[4px] border-slate-300"
+                                          />
+                                          <div className="flex flex-col gap-0.5">
+                                            <span className="text-[14px] font-semibold text-[#334155] leading-tight">
+                                              {expense.expenseAccount}
+                                            </span>
+                                            <div className="flex items-center gap-1.5 text-[12px] text-slate-500 font-medium">
+                                              <span>{expense.date ? format(new Date(expense.date), 'dd/MM/yyyy') : '-'}</span>
+                                              <span className="text-slate-300">•</span>
+                                              <span>{expense.vendorName || '-'}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                        <span className="text-[14px] font-semibold text-[#1e293b]">
+                                          {formatCurrency(expense.amount)}
+                                        </span>
+                                      </div>
+                                    </td>
+                                  ) : (
+                                    <>
+                                      <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                                        <Checkbox data-testid={`checkbox-expense-${expense.id}`} />
+                                      </td>
+                                      <td className="p-3 text-sm">{expense.date}</td>
+                                      <td className="p-3 text-sm font-medium">{expense.expenseAccount}</td>
+                                      <td className="p-3 text-sm">{expense.vendorName || '-'}</td>
+                                      <td className="p-3 text-sm">{expense.paidThrough || '-'}</td>
+                                      <td className="p-3 text-sm">{expense.customerName || '-'}</td>
+                                      <td className="p-3 text-sm text-right font-semibold">
+                                        {formatCurrency(expense.amount)}
+                                      </td>
+                                    </>
+                                  )}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </div>
+                    {filteredExpenses.length > 0 && (
+                      <div className="flex-none border-t border-slate-200 bg-white">
+                        <TablePagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          totalItems={totalItems}
+                          itemsPerPage={itemsPerPage}
+                          onPageChange={goToPage}
+                        />
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </div>
             </div>
-          </div>
-        </ResizablePanel>
+          </ResizablePanel>
+        )}
 
         {selectedExpense && (
           <>
-            <ResizableHandle withHandle className="w-[1px] bg-slate-200 hover:bg-blue-400 transition-colors" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-[1px] bg-slate-200 hover:bg-blue-400 transition-colors" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
               <ExpenseDetailPanel
                 expense={selectedExpense}
                 onClose={handleClosePanel}

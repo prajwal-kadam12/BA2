@@ -484,14 +484,26 @@ export default function PaymentsReceived() {
 
   const showCreateForm = false; // Separate page handles this
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup key={selectedPayment ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        {!showCreateForm && (
+      <ResizablePanelGroup key={`${selectedPayment ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {!showCreateForm && (!isCompact || !selectedPayment) && (
           <ResizablePanel
-            defaultSize={selectedPayment ? 29 : 100}
-            minSize={selectedPayment ? 29 : 100}
-            maxSize={selectedPayment ? 29 : 100}
+            defaultSize={isCompact ? 100 : (selectedPayment ? 29 : 100)}
+            minSize={isCompact ? 100 : (selectedPayment ? 29 : 100)}
+            maxSize={isCompact ? 100 : (selectedPayment ? 29 : 100)}
             className="bg-white min-w-[25%]"
           >
             <div className="h-full flex flex-col overflow-hidden bg-white border-r border-slate-200">
@@ -731,8 +743,10 @@ export default function PaymentsReceived() {
 
         {!showCreateForm && selectedPayment && (
           <>
-            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={25} className="bg-white">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 25} className="bg-white">
               <div className="h-full flex flex-col overflow-hidden bg-white border-l border-slate-200">
                 <PaymentDetailPanel
                   payment={selectedPayment}

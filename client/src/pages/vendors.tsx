@@ -918,9 +918,19 @@ export default function VendorsPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const isMobile = useIsMobile();
     const [vendorToDelete, setVendorToDelete] = useState<string | null>(null);
     const [isSearchVisible, setIsSearchVisible] = useState(false);
+    const [isCompact, setIsCompact] = useState(false);
+
+    useEffect(() => {
+        const checkCompact = () => {
+            setIsCompact(window.innerWidth < 1280);
+        };
+
+        checkCompact();
+        window.addEventListener('resize', checkCompact);
+        return () => window.removeEventListener('resize', checkCompact);
+    }, []);
 
     useEffect(() => {
         fetchVendors();
@@ -996,86 +1006,12 @@ export default function VendorsPage() {
 
     return (
         <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-            {isMobile ? (
-                // Mobile View: Switch between list and detail
-                <div className="flex-1 flex flex-col overflow-hidden bg-white">
-                    {selectedVendor ? (
-                        <VendorDetailPanel
-                            vendor={selectedVendor}
-                            onClose={handleClosePanel}
-                            onEdit={handleEditVendor}
-                            onDelete={handleDeleteClick}
-                        />
-                    ) : (
-                        <div className="flex flex-col h-full overflow-hidden">
-                            {/* Mobile Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-                                <h1 className="text-xl font-semibold text-slate-900">All Vendors</h1>
-                                <Button onClick={() => setLocation("/vendors/new")} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                                    <Plus className="h-4 w-4 mr-2" /> New
-                                </Button>
-                            </div>
-
-                            {/* Mobile Search */}
-                            <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/50">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Search vendors..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="pl-9 h-9 bg-white"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Mobile List Content */}
-                            <div className="flex-1 overflow-auto scrollbar-hide">
-                                {loading ? (
-                                    <div className="p-8 text-center text-slate-500">Loading vendors...</div>
-                                ) : filteredVendors.length === 0 ? (
-                                    <div className="p-8 text-center text-slate-500">No vendors found.</div>
-                                ) : (
-                                    <div className="divide-y divide-slate-100">
-                                        {paginatedItems.map(vendor => (
-                                            <div
-                                                key={vendor.id}
-                                                className="p-4 hover:bg-slate-50 cursor-pointer flex justify-between items-center"
-                                                onClick={() => handleVendorClick(vendor)}
-                                            >
-                                                <div>
-                                                    <div className="font-medium text-blue-600">{vendor.displayName || vendor.name}</div>
-                                                    <div className="text-sm text-slate-500">{vendor.companyName || '-'}</div>
-                                                </div>
-                                                <ChevronRight className="h-4 w-4 text-slate-300" />
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Mobile Pagination */}
-                            {filteredVendors.length > 0 && (
-                                <div className="border-t border-slate-200">
-                                    <TablePagination
-                                        currentPage={currentPage}
-                                        totalPages={totalPages}
-                                        totalItems={totalItems}
-                                        itemsPerPage={itemsPerPage}
-                                        onPageChange={goToPage}
-                                    />
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            ) : (
-                // Desktop View: Resizable side-by-side panels
-                <ResizablePanelGroup key={selectedVendor ? "split" : "single"} direction="horizontal" className="h-full w-full">
+            <ResizablePanelGroup key={`${selectedVendor ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+                {(!isCompact || !selectedVendor) && (
                     <ResizablePanel
-                        defaultSize={selectedVendor ? 29 : 100}
-                        minSize={selectedVendor ? 29 : 100}
-                        maxSize={selectedVendor ? 29 : 100}
+                        defaultSize={isCompact ? 100 : (selectedVendor ? 29 : 100)}
+                        minSize={isCompact ? 100 : (selectedVendor ? 29 : 100)}
+                        maxSize={isCompact ? 100 : (selectedVendor ? 29 : 100)}
                         className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
                     >
                         <div className="flex flex-col h-full overflow-hidden">
@@ -1215,22 +1151,24 @@ export default function VendorsPage() {
                             </div>
                         </div>
                     </ResizablePanel>
+                )}
 
-                    {selectedVendor && (
-                        <>
+                {selectedVendor && (
+                    <>
+                        {!isCompact && (
                             <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-                            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
-                                <VendorDetailPanel
-                                    vendor={selectedVendor}
-                                    onClose={handleClosePanel}
-                                    onEdit={handleEditVendor}
-                                    onDelete={handleDeleteClick}
-                                />
-                            </ResizablePanel>
-                        </>
-                    )}
-                </ResizablePanelGroup>
-            )}
+                        )}
+                        <ResizablePanel defaultSize={isCompact ? 100 : 71} minSize={isCompact ? 100 : 30} className="bg-white">
+                            <VendorDetailPanel
+                                vendor={selectedVendor}
+                                onClose={handleClosePanel}
+                                onEdit={handleEditVendor}
+                                onDelete={handleDeleteClick}
+                            />
+                        </ResizablePanel>
+                    </>
+                )}
+            </ResizablePanelGroup>
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
                 <AlertDialogContent>

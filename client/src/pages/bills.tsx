@@ -1427,349 +1427,365 @@ export default function Bills() {
     }
   };
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden">
-      <ResizablePanelGroup key={selectedBill ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedBill ? 29 : 100}
-          minSize={selectedBill ? 29 : 100}
-          maxSize={selectedBill ? 29 : 100}
-          className="flex flex-col overflow-hidden bg-white min-w-[25%]"
-        >
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-            <div className="flex items-center gap-4 flex-1">
-              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+      <ResizablePanelGroup key={`${selectedBill ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedBill) && (
+          <ResizablePanel
+            defaultSize={isCompact ? 100 : (selectedBill ? 29 : 100)}
+            minSize={isCompact ? 100 : (selectedBill ? 29 : 100)}
+            maxSize={isCompact ? 100 : (selectedBill ? 29 : 100)}
+            className="flex flex-col overflow-hidden bg-white min-w-[25%]"
+          >
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+              <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
+                      >
+                        <span className="line-clamp-2">
+                          {activeFilter === "All" ? "All Bills" : `${activeFilter} Bills`}
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuItem onClick={() => setActiveFilter("All")}>
+                        All
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("Open")}>
+                        Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("Paid")}>
+                        Paid
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("Overdue")}>
+                        Overdue
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("Partially Paid")}>
+                        Partially Paid
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setActiveFilter("Void")}>
+                        Void
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <span className="text-sm text-slate-400">({bills.length})</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {selectedBill ? (
+                  isSearchVisible ? (
+                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        autoFocus
+                        placeholder="Search..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                        className="pl-9 h-9"
+                      />
+                    </div>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 px-0"
+                      data-testid="button-search-compact"
+                      onClick={() => setIsSearchVisible(true)}
+                    >
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </Button>
+                  )
+                ) : (
+                  <div className="relative w-[240px] hidden sm:block">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      placeholder="Search bills..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-9 h-9"
+                      data-testid="input-search-bills"
+                    />
+                  </div>
+                )}
+
+                <Button
+                  onClick={() => setLocation("/bills/new")}
+                  className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedBill ? 'w-9 px-0' : ''}`}
+                  data-testid="button-new-bill"
+                  size={selectedBill ? "icon" : "default"}
+                >
+                  <Plus className={`h-4 w-4 ${selectedBill ? '' : 'mr-1.5'}`} />
+                  {!selectedBill && "New Bill"}
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
-                    >
-                      <span className="line-clamp-2">
-                        {activeFilter === "All" ? "All Bills" : `${activeFilter} Bills`}
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                    <Button variant="outline" size="icon" className="h-9 w-9">
+                      <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuItem onClick={() => setActiveFilter("All")}>
-                      All
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("Open")}>
-                      Open
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("Paid")}>
-                      Paid
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("Overdue")}>
-                      Overdue
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("Partially Paid")}>
-                      Partially Paid
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveFilter("Void")}>
-                      Void
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <ArrowUpDown className="mr-2 h-4 w-4" />
+                        <span>Sort by</span>
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuSubContent>
+                          <DropdownMenuItem>Date</DropdownMenuItem>
+                          <DropdownMenuItem>Bill Number</DropdownMenuItem>
+                          <DropdownMenuItem>Vendor Name</DropdownMenuItem>
+                          <DropdownMenuItem>Amount</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuPortal>
+                    </DropdownMenuSub>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => fetchBills()}>
+                      <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
-                <span className="text-sm text-slate-400">({bills.length})</span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {selectedBill ? (
-                isSearchVisible ? (
-                  <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      autoFocus
-                      placeholder="Search..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      onBlur={() => !searchTerm && setIsSearchVisible(false)}
-                      className="pl-9 h-9"
-                    />
+            {/* Mobile Search Bar */}
+            <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Search bills..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 h-9"
+                  data-testid="input-search-mobile"
+                />
+              </div>
+            </div>
+
+
+
+            <div className="flex-1 flex flex-col min-h-0 relative">
+              <div className="flex-1 overflow-auto scrollbar-hide relative">
+
+                {loading ? (
+                  <div className="p-8 text-center text-slate-500">
+                    Loading bills...
+                  </div>
+                ) : filteredBills.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full text-center p-8">
+                    <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                      <FileText className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No bills found</h3>
+                    <p className="text-slate-500 mb-4">
+                      {searchTerm
+                        ? "Try adjusting your search criteria"
+                        : "Create your first bill to get started"}
+                    </p>
+                    {!searchTerm && (
+                      <Button
+                        onClick={() => setLocation("/bills/new")}
+                        className="gap-2"
+                        data-testid="button-create-first-bill"
+                      >
+                        <Plus className="h-4 w-4" /> Create New Bill
+                      </Button>
+                    )}
+                  </div>
+                ) : selectedBill ? (
+                  <div className="flex flex-col h-full bg-white">
+                    {paginatedItems.map((bill: Bill) => {
+                      const paymentStatus = getPaymentStatus(bill);
+                      const isOverdue = bill.status === "OVERDUE" || (bill.balanceDue > 0 && new Date(bill.dueDate) < new Date());
+                      const daysOverdue = isOverdue ? Math.ceil((new Date().getTime() - new Date(bill.dueDate).getTime()) / (1000 * 3600 * 24)) : 0;
+
+                      return (
+                        <div
+                          key={bill.id}
+                          onClick={() => handleBillClick(bill)}
+                          className={`group flex items-start gap-3 p-4 border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 relative ${selectedBill?.id === bill.id ? "bg-blue-50/50" : ""
+                            }`}
+                          data-testid={`card-bill-${bill.id}`}
+                        >
+                          <div className="mt-1" onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedBills.includes(bill.id)}
+                              onCheckedChange={() => {
+                                if (selectedBills.includes(bill.id)) {
+                                  setSelectedBills(selectedBills.filter((i) => i !== bill.id));
+                                } else {
+                                  setSelectedBills([...selectedBills, bill.id]);
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="flex-1 min-w-0 space-y-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <h3 className="font-semibold text-[14px] text-slate-900 truncate uppercase">
+                                {bill.vendorName}
+                              </h3>
+                              <span className="font-semibold text-[14px] text-slate-900 whitespace-nowrap">
+                                {formatCurrency(bill.total)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[13px] text-slate-500">
+                              <span>{bill.billNumber}</span>
+                              <span className="text-slate-300">•</span>
+                              <span>{formatDate(bill.billDate)}</span>
+                            </div>
+                            <div className="pt-1">
+                              {paymentStatus === "PAID" ? (
+                                <span className="text-[11px] font-bold text-green-600 tracking-wider">PAID</span>
+                              ) : isOverdue ? (
+                                <span className="text-[11px] font-bold text-orange-500 tracking-wider">
+                                  OVERDUE BY {daysOverdue} DAYS
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-bold text-blue-600 tracking-wider">OPEN</span>
+                              )}
+                            </div>
+                          </div>
+                          {selectedBill?.id === bill.id && (
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : (
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-9 w-9 px-0"
-                    data-testid="button-search-compact"
-                    onClick={() => setIsSearchVisible(true)}
-                  >
-                    <Search className="h-4 w-4 text-slate-400" />
-                  </Button>
-                )
-              ) : (
-                <div className="relative w-[240px] hidden sm:block">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search bills..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 h-9"
-                    data-testid="input-search-bills"
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-slate-50">
+                        <TableHead className="w-10"></TableHead>
+                        <TableHead className="font-semibold">Date</TableHead>
+                        <TableHead className="font-semibold">Bill#</TableHead>
+                        <TableHead className="font-semibold text-xs text-slate-500 uppercase">Reference Number</TableHead>
+                        <TableHead className="font-semibold">Vendor Name</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Due Date</TableHead>
+                        <TableHead className="font-semibold text-right">Amount</TableHead>
+                        <TableHead className="font-semibold text-right">
+                          Balance Due
+                        </TableHead>
+                        <TableHead className="w-10"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedItems.map((bill: any) => (
+                        <TableRow
+                          key={bill.id}
+                          onClick={() => handleBillClick(bill)}
+                          className={`cursor-pointer hover-elevate ${selectedBill?.id === bill.id ? "bg-blue-50" : ""}`}
+                          data-testid={`row-bill-${bill.id}`}
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedBills.includes(bill.id)}
+                              onClick={(e) => toggleSelectBill(bill.id, e)}
+                            />
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {formatDate(bill.billDate)}
+                          </TableCell>
+                          <TableCell className="text-sm text-blue-600 font-medium">
+                            {bill.billNumber}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {bill.orderNumber || "-"}
+                          </TableCell>
+                          <TableCell className="text-sm">{bill.vendorName}</TableCell>
+                          <TableCell>{getStatusBadge(bill.status)}</TableCell>
+                          <TableCell className="text-sm">
+                            {formatDate(bill.dueDate)}
+                          </TableCell>
+                          <TableCell className="text-sm text-right">
+                            {formatCurrency(bill.total)}
+                          </TableCell>
+                          <TableCell className="text-sm text-right">
+                            {formatCurrency(bill.balanceDue)}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger
+                                asChild
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setLocation(`/bills/${bill.id}/edit`);
+                                  }}
+                                >
+                                  <Pencil className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDelete(bill.id);
+                                  }}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
+              {filteredBills.length > 0 && (
+                <div className="flex-none border-t border-slate-200 bg-white">
+                  <TablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
                   />
                 </div>
               )}
-
-              <Button
-                onClick={() => setLocation("/bills/new")}
-                className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedBill ? 'w-9 px-0' : ''}`}
-                data-testid="button-new-bill"
-                size={selectedBill ? "icon" : "default"}
-              >
-                <Plus className={`h-4 w-4 ${selectedBill ? '' : 'mr-1.5'}`} />
-                {!selectedBill && "New Bill"}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" className="h-9 w-9">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 p-1">
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <ArrowUpDown className="mr-2 h-4 w-4" />
-                      <span>Sort by</span>
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        <DropdownMenuItem>Date</DropdownMenuItem>
-                        <DropdownMenuItem>Bill Number</DropdownMenuItem>
-                        <DropdownMenuItem>Vendor Name</DropdownMenuItem>
-                        <DropdownMenuItem>Amount</DropdownMenuItem>
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => fetchBills()}>
-                    <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
-          </div>
 
-          {/* Mobile Search Bar */}
-          <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search bills..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 h-9"
-                data-testid="input-search-mobile"
-              />
-            </div>
-          </div>
-
-
-
-          <div className="flex-1 flex flex-col min-h-0 relative">
-            <div className="flex-1 overflow-auto scrollbar-hide relative">
-
-              {loading ? (
-                <div className="p-8 text-center text-slate-500">
-                  Loading bills...
-                </div>
-              ) : filteredBills.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center p-8">
-                  <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                    <FileText className="h-8 w-8 text-slate-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">No bills found</h3>
-                  <p className="text-slate-500 mb-4">
-                    {searchTerm
-                      ? "Try adjusting your search criteria"
-                      : "Create your first bill to get started"}
-                  </p>
-                  {!searchTerm && (
-                    <Button
-                      onClick={() => setLocation("/bills/new")}
-                      className="gap-2"
-                      data-testid="button-create-first-bill"
-                    >
-                      <Plus className="h-4 w-4" /> Create New Bill
-                    </Button>
-                  )}
-                </div>
-              ) : selectedBill ? (
-                <div className="flex flex-col h-full bg-white">
-                  {paginatedItems.map((bill: Bill) => {
-                    const paymentStatus = getPaymentStatus(bill);
-                    const isOverdue = bill.status === "OVERDUE" || (bill.balanceDue > 0 && new Date(bill.dueDate) < new Date());
-                    const daysOverdue = isOverdue ? Math.ceil((new Date().getTime() - new Date(bill.dueDate).getTime()) / (1000 * 3600 * 24)) : 0;
-
-                    return (
-                      <div
-                        key={bill.id}
-                        onClick={() => handleBillClick(bill)}
-                        className={`group flex items-start gap-3 p-4 border-b border-slate-100 cursor-pointer transition-colors hover:bg-slate-50 relative ${selectedBill?.id === bill.id ? "bg-blue-50/50" : ""
-                          }`}
-                        data-testid={`card-bill-${bill.id}`}
-                      >
-                        <div className="mt-1" onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedBills.includes(bill.id)}
-                            onCheckedChange={() => {
-                              if (selectedBills.includes(bill.id)) {
-                                setSelectedBills(selectedBills.filter((i) => i !== bill.id));
-                              } else {
-                                setSelectedBills([...selectedBills, bill.id]);
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-[14px] text-slate-900 truncate uppercase">
-                              {bill.vendorName}
-                            </h3>
-                            <span className="font-semibold text-[14px] text-slate-900 whitespace-nowrap">
-                              {formatCurrency(bill.total)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[13px] text-slate-500">
-                            <span>{bill.billNumber}</span>
-                            <span className="text-slate-300">•</span>
-                            <span>{formatDate(bill.billDate)}</span>
-                          </div>
-                          <div className="pt-1">
-                            {paymentStatus === "PAID" ? (
-                              <span className="text-[11px] font-bold text-green-600 tracking-wider">PAID</span>
-                            ) : isOverdue ? (
-                              <span className="text-[11px] font-bold text-orange-500 tracking-wider">
-                                OVERDUE BY {daysOverdue} DAYS
-                              </span>
-                            ) : (
-                              <span className="text-[11px] font-bold text-blue-600 tracking-wider">OPEN</span>
-                            )}
-                          </div>
-                        </div>
-                        {selectedBill?.id === bill.id && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-600" />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-slate-50">
-                      <TableHead className="w-10"></TableHead>
-                      <TableHead className="font-semibold">Date</TableHead>
-                      <TableHead className="font-semibold">Bill#</TableHead>
-                      <TableHead className="font-semibold text-xs text-slate-500 uppercase">Reference Number</TableHead>
-                      <TableHead className="font-semibold">Vendor Name</TableHead>
-                      <TableHead className="font-semibold">Status</TableHead>
-                      <TableHead className="font-semibold">Due Date</TableHead>
-                      <TableHead className="font-semibold text-right">Amount</TableHead>
-                      <TableHead className="font-semibold text-right">
-                        Balance Due
-                      </TableHead>
-                      <TableHead className="w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedItems.map((bill: any) => (
-                      <TableRow
-                        key={bill.id}
-                        onClick={() => handleBillClick(bill)}
-                        className={`cursor-pointer hover-elevate ${selectedBill?.id === bill.id ? "bg-blue-50" : ""}`}
-                        data-testid={`row-bill-${bill.id}`}
-                      >
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedBills.includes(bill.id)}
-                            onClick={(e) => toggleSelectBill(bill.id, e)}
-                          />
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(bill.billDate)}
-                        </TableCell>
-                        <TableCell className="text-sm text-blue-600 font-medium">
-                          {bill.billNumber}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {bill.orderNumber || "-"}
-                        </TableCell>
-                        <TableCell className="text-sm">{bill.vendorName}</TableCell>
-                        <TableCell>{getStatusBadge(bill.status)}</TableCell>
-                        <TableCell className="text-sm">
-                          {formatDate(bill.dueDate)}
-                        </TableCell>
-                        <TableCell className="text-sm text-right">
-                          {formatCurrency(bill.total)}
-                        </TableCell>
-                        <TableCell className="text-sm text-right">
-                          {formatCurrency(bill.balanceDue)}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setLocation(`/bills/${bill.id}/edit`);
-                                }}
-                              >
-                                <Pencil className="mr-2 h-4 w-4" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDelete(bill.id);
-                                }}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </div>
-            {filteredBills.length > 0 && (
-              <div className="flex-none border-t border-slate-200 bg-white">
-                <TablePagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={totalItems}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={goToPage}
-                />
-              </div>
-            )}
-          </div>
-
-        </ResizablePanel >
+          </ResizablePanel >
+        )}
 
         {selectedBill && (
           <>
-            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
               <BillDetailPanel
                 bill={selectedBill}
                 branding={branding}

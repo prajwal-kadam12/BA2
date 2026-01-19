@@ -488,293 +488,308 @@ export default function PaymentsMade() {
     }
   };
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup key={selectedPayment ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedPayment ? 33 : 100}
-          minSize={selectedPayment ? 33 : 100}
-          maxSize={selectedPayment ? 33 : 100}
-          className="flex flex-col overflow-hidden bg-white border-r min-w-[25%]"
-        >
-          {/* Main List View */}
-          <div className={`flex flex-col h-full ${selectedPayment ? 'w-full' : 'max-w-full mx-auto p-6'} animate-in fade-in duration-500`}>
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-              <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="gap-1 font-bold text-slate-900 transition-all p-0 hover:bg-transparent text-left whitespace-normal h-auto">
-                      <span className={cn(
-                        "transition-all line-clamp-2",
-                        selectedPayment ? "text-lg lg:text-xl" : "text-xl"
-                      )}>
-                        All Payments
-                      </span>
-                      <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-56">
-                    <DropdownMenuItem className="font-medium">All Payments</DropdownMenuItem>
-                    <DropdownMenuItem>Paid</DropdownMenuItem>
-                    <DropdownMenuItem>Refunded</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+      <ResizablePanelGroup key={`${selectedPayment ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedPayment) && (
+          <ResizablePanel
+            defaultSize={isCompact ? 100 : (selectedPayment ? 33 : 100)}
+            minSize={isCompact ? 100 : (selectedPayment ? 33 : 100)}
+            maxSize={isCompact ? 100 : (selectedPayment ? 33 : 100)}
+            className="flex flex-col overflow-hidden bg-white border-r min-w-[25%]"
+          >
+            {/* Main List View */}
+            <div className={`flex flex-col h-full ${selectedPayment ? 'w-full' : 'max-w-full mx-auto p-6'} animate-in fade-in duration-500`}>
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="gap-1 font-bold text-slate-900 transition-all p-0 hover:bg-transparent text-left whitespace-normal h-auto">
+                        <span className={cn(
+                          "transition-all line-clamp-2",
+                          selectedPayment ? "text-lg lg:text-xl" : "text-xl"
+                        )}>
+                          All Payments
+                        </span>
+                        <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      <DropdownMenuItem className="font-medium">All Payments</DropdownMenuItem>
+                      <DropdownMenuItem>Paid</DropdownMenuItem>
+                      <DropdownMenuItem>Refunded</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
 
-              <div className="flex items-center gap-2">
-                {selectedPayment ? (
-                  isSearchVisible ? (
-                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                <div className="flex items-center gap-2">
+                  {selectedPayment ? (
+                    isSearchVisible ? (
+                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          autoFocus
+                          placeholder="Search..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 px-0"
+                        data-testid="button-search-compact"
+                        onClick={() => setIsSearchVisible(true)}
+                      >
+                        <Search className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    )
+                  ) : (
+                    <div className="relative w-[240px] hidden sm:block">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        autoFocus
-                        placeholder="Search..."
+                        placeholder="Search payments..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        onBlur={() => !searchQuery && setIsSearchVisible(false)}
                         className="pl-9 h-9"
+                        data-testid="input-search-payments"
                       />
                     </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 px-0"
-                      data-testid="button-search-compact"
-                      onClick={() => setIsSearchVisible(true)}
-                    >
-                      <Search className="h-4 w-4 text-slate-500" />
-                    </Button>
-                  )
-                ) : (
-                  <div className="relative w-[240px] hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      placeholder="Search payments..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9"
-                      data-testid="input-search-payments"
-                    />
-                  </div>
-                )}
-                <Button
-                  className={cn(
-                    "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 font-semibold",
-                    selectedPayment && "w-9 px-0"
                   )}
-                  size={selectedPayment ? "icon" : "default"}
-                  onClick={() => setLocation('/payments-made/new')}
-                  data-testid="button-record-payment"
-                >
-                  <Plus className="h-4 w-4" />
-                  {!selectedPayment && <span>New</span>}
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1">
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <ArrowUpDown className="mr-2 h-4 w-4" />
-                        <span>Sort by</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem>Date</DropdownMenuItem>
-                          <DropdownMenuItem>Payment Number</DropdownMenuItem>
-                          <DropdownMenuItem>Vendor Name</DropdownMenuItem>
-                          <DropdownMenuItem>Amount</DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem data-testid="menu-import">
-                      <Download className="mr-2 h-4 w-4" /> Import Payments
-                    </DropdownMenuItem>
-                    <DropdownMenuItem data-testid="menu-export">
-                      <Download className="mr-2 h-4 w-4" /> Export Payments
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem data-testid="menu-preferences">
-                      <Settings className="mr-2 h-4 w-4" /> Preferences
-                    </DropdownMenuItem>
-                    {/* @ts-ignore - refetch is available from useQuery but might not be in types */}
-                    <DropdownMenuItem onClick={() => { }}>
-                      <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            {isLoading ? (
-              <div className="flex items-center justify-center py-16">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              </div>
-            ) : payments.length === 0 ? (
-              <Card className="border-dashed m-6">
-                <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <CreditCard className="h-8 w-8 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2" data-testid="text-payments-empty">No payments recorded</h3>
-                  <p className="text-muted-foreground mb-4 max-w-sm">
-                    Record payments made to vendors to keep track of your accounts payable.
-                  </p>
                   <Button
-                    className="gap-2 bg-blue-600 hover:bg-blue-700"
+                    className={cn(
+                      "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 font-semibold",
+                      selectedPayment && "w-9 px-0"
+                    )}
+                    size={selectedPayment ? "icon" : "default"}
                     onClick={() => setLocation('/payments-made/new')}
-                    data-testid="button-record-first-payment"
+                    data-testid="button-record-payment"
                   >
-                    <Plus className="h-4 w-4" /> Record Your First Payment
+                    <Plus className="h-4 w-4" />
+                    {!selectedPayment && <span>New</span>}
                   </Button>
-                </CardContent>
-              </Card>
-            ) : selectedPayment ? (
-              <div className="flex-1 overflow-y-auto scrollbar-hide">
-                <div className="divide-y divide-slate-100">
-                  {filteredPayments.map((payment) => (
-                    <div
-                      key={payment.id}
-                      className={`p-4 cursor-pointer transition-colors hover:bg-slate-50 ${selectedPayment.id === payment.id ? 'bg-blue-50 border-l-2 border-l-blue-600' : ''
-                        }`}
-                      onClick={() => setSelectedPayment(payment)}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 p-1">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          <span>Sort by</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem>Date</DropdownMenuItem>
+                            <DropdownMenuItem>Payment Number</DropdownMenuItem>
+                            <DropdownMenuItem>Vendor Name</DropdownMenuItem>
+                            <DropdownMenuItem>Amount</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem data-testid="menu-import">
+                        <Download className="mr-2 h-4 w-4" /> Import Payments
+                      </DropdownMenuItem>
+                      <DropdownMenuItem data-testid="menu-export">
+                        <Download className="mr-2 h-4 w-4" /> Export Payments
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem data-testid="menu-preferences">
+                        <Settings className="mr-2 h-4 w-4" /> Preferences
+                      </DropdownMenuItem>
+                      {/* @ts-ignore - refetch is available from useQuery but might not be in types */}
+                      <DropdownMenuItem onClick={() => { }}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              {isLoading ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : payments.length === 0 ? (
+                <Card className="border-dashed m-6">
+                  <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <CreditCard className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2" data-testid="text-payments-empty">No payments recorded</h3>
+                    <p className="text-muted-foreground mb-4 max-w-sm">
+                      Record payments made to vendors to keep track of your accounts payable.
+                    </p>
+                    <Button
+                      className="gap-2 bg-blue-600 hover:bg-blue-700"
+                      onClick={() => setLocation('/payments-made/new')}
+                      data-testid="button-record-first-payment"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex gap-3 min-w-0">
-                          <Checkbox
-                            className="mt-1"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <div className="min-w-0">
-                            <div className="font-semibold text-sm truncate uppercase text-slate-900">
-                              {payment.vendorName}
-                            </div>
-                            <div className="text-xs text-slate-500 mt-1">
-                              {formatDate(payment.paymentDate)} • {getPaymentModeLabel(payment.paymentMode)}
-                            </div>
-                            <div className={`text-[10px] font-bold mt-1 uppercase ${payment.status === 'PAID' ? 'text-green-600' : 'text-slate-400'
-                              }`}>
-                              {payment.status}
+                      <Plus className="h-4 w-4" /> Record Your First Payment
+                    </Button>
+                  </CardContent>
+                </Card>
+              ) : selectedPayment ? (
+                <div className="flex-1 overflow-y-auto scrollbar-hide">
+                  <div className="divide-y divide-slate-100">
+                    {filteredPayments.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className={`p-4 cursor-pointer transition-colors hover:bg-slate-50 ${selectedPayment.id === payment.id ? 'bg-blue-50 border-l-2 border-l-blue-600' : ''
+                          }`}
+                        onClick={() => setSelectedPayment(payment)}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex gap-3 min-w-0">
+                            <Checkbox
+                              className="mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <div className="min-w-0">
+                              <div className="font-semibold text-sm truncate uppercase text-slate-900">
+                                {payment.vendorName}
+                              </div>
+                              <div className="text-xs text-slate-500 mt-1">
+                                {formatDate(payment.paymentDate)} • {getPaymentModeLabel(payment.paymentMode)}
+                              </div>
+                              <div className={`text-[10px] font-bold mt-1 uppercase ${payment.status === 'PAID' ? 'text-green-600' : 'text-slate-400'
+                                }`}>
+                                {payment.status}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="text-right shrink-0">
-                          <div className="font-semibold text-sm">
-                            {formatCurrency(payment.paymentAmount)}
+                          <div className="text-right shrink-0">
+                            <div className="font-semibold text-sm">
+                              {formatCurrency(payment.paymentAmount)}
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex-1 overflow-auto scrollbar-hide">
-                  <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900 mb-6">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-10">
-                              <Checkbox
-                                checked={paginatedItems.length > 0 && paginatedItems.every(p => false)} // Logic for bulk select if needed
-                                data-testid="checkbox-select-all"
-                              />
-                            </th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Date</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Payment #</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Reference#</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Vendor Name</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Bill#</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Mode</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
-                            <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Amount</th>
-                            <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Unused Amount</th>
-                            <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider w-10">
-                              <Search className="h-4 w-4 mx-auto" />
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                          {paginatedItems.map((payment) => (
-                            <tr
-                              key={payment.id}
-                              className={`hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedPayment?.id === payment.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                              onClick={() => handleRowClick(payment)}
-                              data-testid={`row-payment-${payment.id}`}
-                            >
-                              <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                                <Checkbox data-testid={`checkbox-payment-${payment.id}`} />
-                              </td>
-                              <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDate(payment.paymentDate)}</td>
-                              <td className="px-4 py-4 text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">{getPaymentNumberString(payment.paymentNumber)}</td>
-                              <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{payment.reference || '-'}</td>
-                              <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-white whitespace-nowrap">{payment.vendorName}</td>
-                              <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{getBillNumbers(payment)}</td>
-                              <td className="px-4 py-4 text-sm capitalize text-slate-600 dark:text-slate-300 whitespace-nowrap">{getPaymentModeLabel(payment.paymentMode)}</td>
-                              <td className="px-4 py-4 text-sm whitespace-nowrap">{getStatusBadge(payment.status)}</td>
-                              <td className="px-4 py-4 text-sm text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                                {formatCurrency(payment.paymentAmount)}
-                              </td>
-                              <td className="px-4 py-4 text-sm text-right text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                                {formatCurrency(calculateUnusedAmount(payment))}
-                              </td>
-                              <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover-elevate" data-testid={`button-payment-actions-${payment.id}`}>
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => handleRowClick(payment)} data-testid={`action-view-${payment.id}`}>View</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => setLocation(`/payments-made/edit/${payment.id}`)} data-testid={`action-edit-${payment.id}`}>Edit</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem
-                                      className="text-destructive"
-                                      onClick={() => handleDelete(payment.id)}
-                                      data-testid={`action-delete-${payment.id}`}
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" />
-                                      Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </td>
+              ) : (
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="flex-1 overflow-auto scrollbar-hide">
+                    <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900 mb-6">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-10">
+                                <Checkbox
+                                  checked={paginatedItems.length > 0 && paginatedItems.every(p => false)} // Logic for bulk select if needed
+                                  data-testid="checkbox-select-all"
+                                />
+                              </th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Date</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Payment #</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Reference#</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Vendor Name</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Bill#</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Mode</th>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Amount</th>
+                              <th className="px-4 py-3 text-right text-xs font-medium text-slate-500 uppercase tracking-wider whitespace-nowrap">Unused Amount</th>
+                              <th className="px-4 py-3 text-center text-xs font-medium text-slate-500 uppercase tracking-wider w-10">
+                                <Search className="h-4 w-4 mx-auto" />
+                              </th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            {paginatedItems.map((payment) => (
+                              <tr
+                                key={payment.id}
+                                className={`hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedPayment?.id === payment.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                                onClick={() => handleRowClick(payment)}
+                                data-testid={`row-payment-${payment.id}`}
+                              >
+                                <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                                  <Checkbox data-testid={`checkbox-payment-${payment.id}`} />
+                                </td>
+                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{formatDate(payment.paymentDate)}</td>
+                                <td className="px-4 py-4 text-sm font-medium text-blue-600 hover:underline whitespace-nowrap">{getPaymentNumberString(payment.paymentNumber)}</td>
+                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400 whitespace-nowrap">{payment.reference || '-'}</td>
+                                <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-white whitespace-nowrap">{payment.vendorName}</td>
+                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">{getBillNumbers(payment)}</td>
+                                <td className="px-4 py-4 text-sm capitalize text-slate-600 dark:text-slate-300 whitespace-nowrap">{getPaymentModeLabel(payment.paymentMode)}</td>
+                                <td className="px-4 py-4 text-sm whitespace-nowrap">{getStatusBadge(payment.status)}</td>
+                                <td className="px-4 py-4 text-sm text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                                  {formatCurrency(payment.paymentAmount)}
+                                </td>
+                                <td className="px-4 py-4 text-sm text-right text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                  {formatCurrency(calculateUnusedAmount(payment))}
+                                </td>
+                                <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 hover-elevate" data-testid={`button-payment-actions-${payment.id}`}>
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => handleRowClick(payment)} data-testid={`action-view-${payment.id}`}>View</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => setLocation(`/payments-made/edit/${payment.id}`)} data-testid={`action-edit-${payment.id}`}>Edit</DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem
+                                        className="text-destructive"
+                                        onClick={() => handleDelete(payment.id)}
+                                        data-testid={`action-delete-${payment.id}`}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
+                  {filteredPayments.length > 0 && (
+                    <div className="flex-none border-t border-slate-200 bg-white">
+                      <TablePagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={totalItems}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={goToPage}
+                      />
+                    </div>
+                  )}
                 </div>
-                {filteredPayments.length > 0 && (
-                  <div className="flex-none border-t border-slate-200 bg-white">
-                    <TablePagination
-                      currentPage={currentPage}
-                      totalPages={totalPages}
-                      totalItems={totalItems}
-                      itemsPerPage={itemsPerPage}
-                      onPageChange={goToPage}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </ResizablePanel>
+              )}
+            </div>
+          </ResizablePanel>
+        )}
 
-        {/* Detail Panel */}
         {selectedPayment && (
           <>
-            <ResizableHandle withHandle className="w-1 bg-slate-100 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-1 bg-slate-100 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
               <div className="flex flex-col h-full overflow-hidden">
                 {/* Detail Header */}
                 <div className="flex items-center justify-between p-3 border-b bg-white">

@@ -252,283 +252,299 @@ export default function EWayBills() {
 
     const { currentPage, totalPages, totalItems, itemsPerPage, paginatedItems, goToPage } = usePagination(filteredEwayBills, 10);
 
+    const [isCompact, setIsCompact] = useState(false);
+
+    useEffect(() => {
+        const checkCompact = () => {
+            setIsCompact(window.innerWidth < 1280);
+        };
+
+        checkCompact();
+        window.addEventListener('resize', checkCompact);
+        return () => window.removeEventListener('resize', checkCompact);
+    }, []);
+
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
-            <ResizablePanelGroup key={selectedBill ? "split" : "single"} direction="horizontal" className="h-full w-full">
-                <ResizablePanel
-                    defaultSize={selectedBill ? 33 : 100}
-                    minSize={selectedBill ? 33 : 100}
-                    maxSize={selectedBill ? 33 : 100}
-                    className="bg-white border-r min-w-[25%]"
-                >
-                    <div className="flex flex-col h-full overflow-hidden">
-                        <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-                            <div className="flex items-center gap-4 flex-1 overflow-hidden">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button
-                                            variant="ghost"
-                                            className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
-                                        >
-                                            <span className="line-clamp-2">All E-Way Bills</span>
-                                            <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="start" className="w-56">
-                                        <DropdownMenuItem>All E-Way Bills</DropdownMenuItem>
-                                        <DropdownMenuItem>Draft</DropdownMenuItem>
-                                        <DropdownMenuItem>Open</DropdownMenuItem>
-                                        <DropdownMenuItem>Delivered</DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                                <span className="text-sm text-slate-400">({ewayBills.length})</span>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                                {selectedBill ? (
-                                    isSearchVisible ? (
-                                        <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
-                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                            <Input
-                                                autoFocus
-                                                placeholder="Search..."
-                                                value={searchQuery}
-                                                onChange={(e) => setSearchQuery(e.target.value)}
-                                                onBlur={() => !searchQuery && setIsSearchVisible(false)}
-                                                className="pl-9 h-9"
-                                            />
-                                        </div>
-                                    ) : (
-                                        <Button
-                                            variant="outline"
-                                            size="icon"
-                                            className="h-9 w-9 px-0"
-                                            data-testid="button-search-compact"
-                                            onClick={() => setIsSearchVisible(true)}
-                                        >
-                                            <Search className="h-4 w-4 text-slate-500" />
-                                        </Button>
-                                    )
-                                ) : (
-                                    <div className="relative w-[240px] hidden sm:block">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                        <Input
-                                            placeholder="Search e-way bills..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="pl-9 h-9"
-                                            data-testid="input-search-eway-bills"
-                                        />
-                                    </div>
-                                )}
-
-
-                                <Button
-                                    className={cn(
-                                        "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 font-semibold",
-                                        selectedBill && "w-9 px-0"
-                                    )}
-                                    size={selectedBill ? "icon" : "default"}
-                                    onClick={() => setLocation('/e-way-bills/create')}
-                                    data-testid="button-new-eway-bill"
-                                >
-                                    <Plus className="h-4 w-4" />
-                                    {!selectedBill && <span>New</span>}
-                                </Button>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-56 p-1">
-                                        <DropdownMenuSub>
-                                            <DropdownMenuSubTrigger>
-                                                <ArrowUpDown className="mr-2 h-4 w-4" />
-                                                <span>Sort by</span>
-                                            </DropdownMenuSubTrigger>
-                                            <DropdownMenuPortal>
-                                                <DropdownMenuSubContent>
-                                                    <DropdownMenuItem>Date</DropdownMenuItem>
-                                                    <DropdownMenuItem>Bill Number</DropdownMenuItem>
-                                                    <DropdownMenuItem>Customer Name</DropdownMenuItem>
-                                                    <DropdownMenuItem>Amount</DropdownMenuItem>
-                                                </DropdownMenuSubContent>
-                                            </DropdownMenuPortal>
-                                        </DropdownMenuSub>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem data-testid="menu-import">
-                                            <Download className="mr-2 h-4 w-4" /> Import Bills
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem data-testid="menu-export">
-                                            <Download className="mr-2 h-4 w-4" /> Export Bills
-                                        </DropdownMenuItem>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem data-testid="menu-preferences">
-                                            <Settings className="mr-2 h-4 w-4" /> Preferences
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={fetchEWayBills}>
-                                            <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </div>
-
-                        {!selectedBill && (
-                            <div className="flex-none p-4 border-b space-y-4">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                    <Input
-                                        placeholder="Search E-Way Bills..."
-                                        className="pl-10"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                    />
+            <ResizablePanelGroup key={`${selectedBill ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+                {(!isCompact || !selectedBill) && (
+                    <ResizablePanel
+                        defaultSize={isCompact ? 100 : (selectedBill ? 33 : 100)}
+                        minSize={isCompact ? 100 : (selectedBill ? 33 : 100)}
+                        maxSize={isCompact ? 100 : (selectedBill ? 33 : 100)}
+                        className="bg-white border-r min-w-[25%]"
+                    >
+                        <div className="flex flex-col h-full overflow-hidden">
+                            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button
+                                                variant="ghost"
+                                                className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal"
+                                            >
+                                                <span className="line-clamp-2">All E-Way Bills</span>
+                                                <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="start" className="w-56">
+                                            <DropdownMenuItem>All E-Way Bills</DropdownMenuItem>
+                                            <DropdownMenuItem>Draft</DropdownMenuItem>
+                                            <DropdownMenuItem>Open</DropdownMenuItem>
+                                            <DropdownMenuItem>Delivered</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                    <span className="text-sm text-slate-400">({ewayBills.length})</span>
                                 </div>
 
                                 <div className="flex items-center gap-2">
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Period:</span>
-                                        <Select value={periodFilter} onValueChange={setPeriodFilter} data-testid="select-period-filter">
-                                            <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-period">
-                                                <SelectValue placeholder="Period" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {transactionPeriods.map((period) => (
-                                                    <SelectItem key={period.value} value={period.value} className="text-sm">
-                                                        {period.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    {selectedBill ? (
+                                        isSearchVisible ? (
+                                            <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                <Input
+                                                    autoFocus
+                                                    placeholder="Search..."
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    onBlur={() => !searchQuery && setIsSearchVisible(false)}
+                                                    className="pl-9 h-9"
+                                                />
+                                            </div>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                size="icon"
+                                                className="h-9 w-9 px-0"
+                                                data-testid="button-search-compact"
+                                                onClick={() => setIsSearchVisible(true)}
+                                            >
+                                                <Search className="h-4 w-4 text-slate-500" />
+                                            </Button>
+                                        )
+                                    ) : (
+                                        <div className="relative w-[240px] hidden sm:block">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                            <Input
+                                                placeholder="Search e-way bills..."
+                                                value={searchQuery}
+                                                onChange={(e) => setSearchQuery(e.target.value)}
+                                                className="pl-9 h-9"
+                                                data-testid="input-search-eway-bills"
+                                            />
+                                        </div>
+                                    )}
 
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Type:</span>
-                                        <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter} data-testid="select-type-filter">
-                                            <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-type">
-                                                <SelectValue placeholder="Type" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {transactionTypeFilters.map((type) => (
-                                                    <SelectItem key={type.value} value={type.value} className="text-sm">
-                                                        {type.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
 
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Status:</span>
-                                        <Select value={statusFilter} onValueChange={setStatusFilter} data-testid="select-status-filter">
-                                            <SelectTrigger className="w-[100px] sm:w-[110px] h-8 text-sm px-2 shrink-0 !min-w-[100px] sm:!min-w-[110px]" data-testid="select-trigger-status">
-                                                <SelectValue placeholder="Status" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {ewayBillStatuses.map((status) => (
-                                                    <SelectItem key={status.value} value={status.value} className="text-sm">
-                                                        {status.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
+                                    <Button
+                                        className={cn(
+                                            "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 font-semibold",
+                                            selectedBill && "w-9 px-0"
+                                        )}
+                                        size={selectedBill ? "icon" : "default"}
+                                        onClick={() => setLocation('/e-way-bills/create')}
+                                        data-testid="button-new-eway-bill"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        {!selectedBill && <span>New</span>}
+                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-56 p-1">
+                                            <DropdownMenuSub>
+                                                <DropdownMenuSubTrigger>
+                                                    <ArrowUpDown className="mr-2 h-4 w-4" />
+                                                    <span>Sort by</span>
+                                                </DropdownMenuSubTrigger>
+                                                <DropdownMenuPortal>
+                                                    <DropdownMenuSubContent>
+                                                        <DropdownMenuItem>Date</DropdownMenuItem>
+                                                        <DropdownMenuItem>Bill Number</DropdownMenuItem>
+                                                        <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                                                        <DropdownMenuItem>Amount</DropdownMenuItem>
+                                                    </DropdownMenuSubContent>
+                                                </DropdownMenuPortal>
+                                            </DropdownMenuSub>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem data-testid="menu-import">
+                                                <Download className="mr-2 h-4 w-4" /> Import Bills
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem data-testid="menu-export">
+                                                <Download className="mr-2 h-4 w-4" /> Export Bills
+                                            </DropdownMenuItem>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem data-testid="menu-preferences">
+                                                <Settings className="mr-2 h-4 w-4" /> Preferences
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={fetchEWayBills}>
+                                                <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             </div>
-                        )}
 
-                        <div className="flex-1 overflow-hidden relative">
-                            <div className="absolute inset-0 flex flex-col">
-                                <div className="flex-1 overflow-y-auto scrollbar-hide">
-                                    <table className="w-full">
-                                        <thead className="bg-slate-50 sticky top-0 z-10">
-                                            <tr className="border-b">
-                                                <th className="p-3 w-10"><Checkbox
-                                                    checked={selectedBills.length === ewayBills.length && ewayBills.length > 0}
-                                                    onCheckedChange={handleSelectAll}
-                                                    data-testid="checkbox-select-all"
-                                                /></th>
-                                                <th className="p-3 text-left font-semibold">E-Way Bill Details</th>
-                                                {!selectedBill && (
-                                                    <>
-                                                        <th className="p-3 text-left font-semibold">Customer</th>
-                                                        <th className="p-3 text-left font-semibold">Status</th>
-                                                        <th className="p-3 text-right font-semibold">Amount</th>
-                                                    </>
-                                                )}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {loading ? (
-                                                <tr>
-                                                    <td colSpan={selectedBill ? 2 : 5} className="p-8 text-center text-muted-foreground">
-                                                        Loading e-way bills...
-                                                    </td>
-                                                </tr>
-                                            ) : filteredEwayBills.length === 0 ? (
-                                                <tr>
-                                                    <td colSpan={selectedBill ? 2 : 5} className="p-8 text-center text-muted-foreground">
-                                                        No e-Way Bills found.
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                paginatedItems.map((bill) => (
-                                                    <tr
-                                                        key={bill.id}
-                                                        className={cn(
-                                                            "border-b hover:bg-slate-50 cursor-pointer transition-colors",
-                                                            selectedBill?.id === bill.id && "bg-blue-50"
-                                                        )}
-                                                        onClick={() => fetchEWayBillDetail(bill.id)}
-                                                    >
-                                                        <td className="p-3" onClick={(e) => e.stopPropagation()}><Checkbox
-                                                            checked={selectedBills.includes(bill.id)}
-                                                            onCheckedChange={(checked) => handleSelectOne(bill.id, checked as boolean)}
-                                                            data-testid={`checkbox-select-${bill.id}`}
-                                                        /></td>
-                                                        <td className="p-3">
-                                                            <div className="flex flex-col">
-                                                                <span className="font-medium text-slate-900">{bill.ewayBillNumber || 'Draft'}</span>
-                                                                <span className="text-xs text-slate-500">{bill.documentNumber} • {formatDate(bill.date)}</span>
-                                                            </div>
-                                                        </td>
-                                                        {!selectedBill && (
-                                                            <>
-                                                                <td className="p-3 text-sm text-slate-600">{bill.customerName}</td>
-                                                                <td className="p-3">
-                                                                    <Badge variant="outline" className={cn("text-[10px] uppercase font-bold", getStatusColor(bill.status))}>
-                                                                        {bill.status.replace('_', ' ')}
-                                                                    </Badge>
-                                                                </td>
-                                                                <td className="p-3 text-right text-sm font-semibold">{formatCurrency(bill.total)}</td>
-                                                            </>
-                                                        )}
-                                                    </tr>
-                                                ))
-                                            )}
-                                        </tbody>
-                                    </table>
+                            {!selectedBill && (
+                                <div className="flex-none p-4 border-b space-y-4">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Input
+                                            placeholder="Search E-Way Bills..."
+                                            className="pl-10"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Period:</span>
+                                            <Select value={periodFilter} onValueChange={setPeriodFilter} data-testid="select-period-filter">
+                                                <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-period">
+                                                    <SelectValue placeholder="Period" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {transactionPeriods.map((period) => (
+                                                        <SelectItem key={period.value} value={period.value} className="text-sm">
+                                                            {period.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Type:</span>
+                                            <Select value={transactionTypeFilter} onValueChange={setTransactionTypeFilter} data-testid="select-type-filter">
+                                                <SelectTrigger className="w-[120px] sm:w-[130px] h-8 text-sm px-2 shrink-0 !min-w-[120px] sm:!min-w-[130px]" data-testid="select-trigger-type">
+                                                    <SelectValue placeholder="Type" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {transactionTypeFilters.map((type) => (
+                                                        <SelectItem key={type.value} value={type.value} className="text-sm">
+                                                            {type.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap lg:hidden xl:hidden hidden">Status:</span>
+                                            <Select value={statusFilter} onValueChange={setStatusFilter} data-testid="select-status-filter">
+                                                <SelectTrigger className="w-[100px] sm:w-[110px] h-8 text-sm px-2 shrink-0 !min-w-[100px] sm:!min-w-[110px]" data-testid="select-trigger-status">
+                                                    <SelectValue placeholder="Status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {ewayBillStatuses.map((status) => (
+                                                        <SelectItem key={status.value} value={status.value} className="text-sm">
+                                                            {status.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex-none border-t bg-white">
-                                    <TablePagination
-                                        currentPage={currentPage}
-                                        totalPages={totalPages}
-                                        totalItems={totalItems}
-                                        itemsPerPage={itemsPerPage}
-                                        onPageChange={goToPage}
-                                    />
+                            )}
+
+                            <div className="flex-1 overflow-hidden relative">
+                                <div className="absolute inset-0 flex flex-col">
+                                    <div className="flex-1 overflow-y-auto scrollbar-hide">
+                                        <table className="w-full">
+                                            <thead className="bg-slate-50 sticky top-0 z-10">
+                                                <tr className="border-b">
+                                                    <th className="p-3 w-10"><Checkbox
+                                                        checked={selectedBills.length === ewayBills.length && ewayBills.length > 0}
+                                                        onCheckedChange={handleSelectAll}
+                                                        data-testid="checkbox-select-all"
+                                                    /></th>
+                                                    <th className="p-3 text-left font-semibold">E-Way Bill Details</th>
+                                                    {!selectedBill && (
+                                                        <>
+                                                            <th className="p-3 text-left font-semibold">Customer</th>
+                                                            <th className="p-3 text-left font-semibold">Status</th>
+                                                            <th className="p-3 text-right font-semibold">Amount</th>
+                                                        </>
+                                                    )}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {loading ? (
+                                                    <tr>
+                                                        <td colSpan={selectedBill ? 2 : 5} className="p-8 text-center text-muted-foreground">
+                                                            Loading e-way bills...
+                                                        </td>
+                                                    </tr>
+                                                ) : filteredEwayBills.length === 0 ? (
+                                                    <tr>
+                                                        <td colSpan={selectedBill ? 2 : 5} className="p-8 text-center text-muted-foreground">
+                                                            No e-Way Bills found.
+                                                        </td>
+                                                    </tr>
+                                                ) : (
+                                                    paginatedItems.map((bill) => (
+                                                        <tr
+                                                            key={bill.id}
+                                                            className={cn(
+                                                                "border-b hover:bg-slate-50 cursor-pointer transition-colors",
+                                                                selectedBill?.id === bill.id && "bg-blue-50"
+                                                            )}
+                                                            onClick={() => fetchEWayBillDetail(bill.id)}
+                                                        >
+                                                            <td className="p-3" onClick={(e) => e.stopPropagation()}><Checkbox
+                                                                checked={selectedBills.includes(bill.id)}
+                                                                onCheckedChange={(checked) => handleSelectOne(bill.id, checked as boolean)}
+                                                                data-testid={`checkbox-select-${bill.id}`}
+                                                            /></td>
+                                                            <td className="p-3">
+                                                                <div className="flex flex-col">
+                                                                    <span className="font-medium text-slate-900">{bill.ewayBillNumber || 'Draft'}</span>
+                                                                    <span className="text-xs text-slate-500">{bill.documentNumber} • {formatDate(bill.date)}</span>
+                                                                </div>
+                                                            </td>
+                                                            {!selectedBill && (
+                                                                <>
+                                                                    <td className="p-3 text-sm text-slate-600">{bill.customerName}</td>
+                                                                    <td className="p-3">
+                                                                        <Badge variant="outline" className={cn("text-[10px] uppercase font-bold", getStatusColor(bill.status))}>
+                                                                            {bill.status.replace('_', ' ')}
+                                                                        </Badge>
+                                                                    </td>
+                                                                    <td className="p-3 text-right text-sm font-semibold">{formatCurrency(bill.total)}</td>
+                                                                </>
+                                                            )}
+                                                        </tr>
+                                                    ))
+                                                )}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="flex-none border-t bg-white">
+                                        <TablePagination
+                                            currentPage={currentPage}
+                                            totalPages={totalPages}
+                                            totalItems={totalItems}
+                                            itemsPerPage={itemsPerPage}
+                                            onPageChange={goToPage}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </ResizablePanel>
+                    </ResizablePanel>
+                )}
 
                 {selectedBill && (
                     <>
-                        <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 transition-all" />
-                        <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+                        {!isCompact && (
+                            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 transition-all" />
+                        )}
+                        <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
                             <EWayBillDetailPanel
                                 bill={selectedBill}
                                 onClose={() => setSelectedBill(null)}

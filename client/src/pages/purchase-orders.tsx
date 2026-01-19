@@ -970,309 +970,325 @@ export default function PurchaseOrders() {
     return actions;
   }
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    checkCompact();
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup key={selectedPO ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedPO ? 30 : 100}
-          minSize={selectedPO ? 30 : 100}
-          maxSize={selectedPO ? 30 : 100}
-          className="flex flex-col overflow-hidden bg-white min-w-[25%]"
-        >
-          <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-semibold text-slate-900 line-clamp-2">All Purchase Orders</h1>
-                <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedPO ? (
-                  isSearchVisible ? (
-                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+      <ResizablePanelGroup key={`${selectedPO ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedPO) && (
+          <ResizablePanel
+            defaultSize={isCompact ? 100 : (selectedPO ? 30 : 100)}
+            minSize={isCompact ? 100 : (selectedPO ? 30 : 100)}
+            maxSize={isCompact ? 100 : (selectedPO ? 30 : 100)}
+            className="flex flex-col overflow-hidden bg-white min-w-[25%]"
+          >
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-semibold text-slate-900 line-clamp-2">All Purchase Orders</h1>
+                  <ChevronDown className="h-4 w-4 text-slate-500 shrink-0" />
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedPO ? (
+                    isSearchVisible ? (
+                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          autoFocus
+                          placeholder="Search..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
+                        onClick={() => setIsSearchVisible(true)}
+                      >
+                        <Search className="h-4 w-4 text-slate-400" />
+                      </Button>
+                    )
+                  ) : (
+                    <div className="relative w-[240px] hidden sm:block">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                       <Input
-                        autoFocus
-                        placeholder="Search..."
+                        placeholder="Search purchase orders..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
                         className="pl-9 h-9"
+                        data-testid="input-search-po"
                       />
                     </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => setIsSearchVisible(true)}
-                    >
-                      <Search className="h-4 w-4 text-slate-400" />
-                    </Button>
-                  )
-                ) : (
-                  <div className="relative w-[240px] hidden sm:block">
+                  )}
+                  <Button
+                    onClick={() => setLocation("/purchase-orders/new")}
+                    className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedPO ? 'w-9 px-0' : ''}`}
+                    data-testid="button-new-po"
+                    size={selectedPO ? "icon" : "default"}
+                  >
+                    <Plus className={`h-4 w-4 ${selectedPO ? '' : 'mr-1.5'}`} />
+                    {!selectedPO && "New"}
+                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 p-1">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          <span>Sort by</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem>Date</DropdownMenuItem>
+                            <DropdownMenuItem>Order Number</DropdownMenuItem>
+                            <DropdownMenuItem>Vendor Name</DropdownMenuItem>
+                            <DropdownMenuItem>Amount</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>
+                        <Download className="mr-2 h-4 w-4" /> Export
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={fetchPurchaseOrders}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              {!selectedPO && (
+                <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white">
+                  <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                     <Input
                       placeholder="Search purchase orders..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 h-9"
-                      data-testid="input-search-po"
+                      className="pl-9"
+                      data-testid="input-search"
                     />
                   </div>
-                )}
-                <Button
-                  onClick={() => setLocation("/purchase-orders/new")}
-                  className={`bg-blue-600 hover:bg-blue-700 gap-1.5 h-9 ${selectedPO ? 'w-9 px-0' : ''}`}
-                  data-testid="button-new-po"
-                  size={selectedPO ? "icon" : "default"}
-                >
-                  <Plus className={`h-4 w-4 ${selectedPO ? '' : 'mr-1.5'}`} />
-                  {!selectedPO && "New"}
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1">
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <ArrowUpDown className="mr-2 h-4 w-4" />
-                        <span>Sort by</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem>Date</DropdownMenuItem>
-                          <DropdownMenuItem>Order Number</DropdownMenuItem>
-                          <DropdownMenuItem>Vendor Name</DropdownMenuItem>
-                          <DropdownMenuItem>Amount</DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <Download className="mr-2 h-4 w-4" /> Export
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={fetchPurchaseOrders}>
-                      <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            {!selectedPO && (
-              <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white">
-                <div className="relative flex-1 max-w-sm">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search purchase orders..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                    data-testid="input-search"
-                  />
-                </div>
-                <Button variant="outline" className="gap-2">
-                  <Filter className="h-4 w-4" /> Filter
-                </Button>
-              </div>
-            )}
-
-            <div className="flex-1 overflow-auto scrollbar-hide">
-              {loading ? (
-                <div className="flex items-center justify-center py-16">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : filteredPOs.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-                  <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                    <ClipboardList className="h-8 w-8 text-slate-400" />
-                  </div>
-                  <h3 className="text-lg font-semibold mb-2">No purchase orders yet</h3>
-                  <p className="text-slate-500 mb-4 max-w-sm">
-                    Create purchase orders to formalize orders with your vendors and track deliveries.
-                  </p>
-                  <Button
-                    onClick={() => setLocation("/purchase-orders/new")}
-                    className="bg-blue-600 hover:bg-blue-700"
-                    data-testid="button-create-first-po"
-                  >
-                    <Plus className="h-4 w-4 mr-2" /> Create Your First Purchase Order
+                  <Button variant="outline" className="gap-2">
+                    <Filter className="h-4 w-4" /> Filter
                   </Button>
                 </div>
-              ) : selectedPO ? (
-                <div className="divide-y divide-slate-100 bg-white">
-                  {paginatedItems.map((po) => (
-                    <div
-                      key={po.id}
-                      className={`flex items-start gap-3 p-4 cursor-pointer hover:bg-slate-50 transition-colors ${selectedPO && selectedPO.id === po.id ? 'bg-blue-50/50' : ''}`}
-                      onClick={() => handlePOClick(po)}
+              )}
+
+              <div className="flex-1 overflow-auto scrollbar-hide">
+                {loading ? (
+                  <div className="flex items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : filteredPOs.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+                    <div className="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                      <ClipboardList className="h-8 w-8 text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No purchase orders yet</h3>
+                    <p className="text-slate-500 mb-4 max-w-sm">
+                      Create purchase orders to formalize orders with your vendors and track deliveries.
+                    </p>
+                    <Button
+                      onClick={() => setLocation("/purchase-orders/new")}
+                      className="bg-blue-600 hover:bg-blue-700"
+                      data-testid="button-create-first-po"
                     >
-                      <Checkbox
-                        checked={selectedPOs.includes(po.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPOs([...selectedPOs, po.id]);
-                          } else {
-                            setSelectedPOs(selectedPOs.filter(id => id !== po.id));
-                          }
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="font-bold text-slate-900 truncate text-[13px]">{po.vendorName}</span>
-                          <span className="font-bold text-slate-900 text-[13px] whitespace-nowrap">{formatCurrency(po.total)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-[11px] text-slate-500 mb-1">
-                          <span>{po.purchaseOrderNumber}</span>
-                          <span>•</span>
-                          <span>{formatDate(po.date)}</span>
-                        </div>
-                        <div className={`text-[10px] font-bold uppercase tracking-wider ${po.status?.toUpperCase() === 'DRAFT' ? 'text-slate-400' :
-                          po.status?.toUpperCase() === 'CLOSED' ? 'text-green-600' :
-                            'text-blue-500'
-                          }`}>
-                          {po.status?.toUpperCase()}
+                      <Plus className="h-4 w-4 mr-2" /> Create Your First Purchase Order
+                    </Button>
+                  </div>
+                ) : selectedPO ? (
+                  <div className="divide-y divide-slate-100 bg-white">
+                    {paginatedItems.map((po) => (
+                      <div
+                        key={po.id}
+                        className={`flex items-start gap-3 p-4 cursor-pointer hover:bg-slate-50 transition-colors ${selectedPO && selectedPO.id === po.id ? 'bg-blue-50/50' : ''}`}
+                        onClick={() => handlePOClick(po)}
+                      >
+                        <Checkbox
+                          checked={selectedPOs.includes(po.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedPOs([...selectedPOs, po.id]);
+                            } else {
+                              setSelectedPOs(selectedPOs.filter(id => id !== po.id));
+                            }
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className="font-bold text-slate-900 truncate text-[13px]">{po.vendorName}</span>
+                            <span className="font-bold text-slate-900 text-[13px] whitespace-nowrap">{formatCurrency(po.total)}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-[11px] text-slate-500 mb-1">
+                            <span>{po.purchaseOrderNumber}</span>
+                            <span>•</span>
+                            <span>{formatDate(po.date)}</span>
+                          </div>
+                          <div className={`text-[10px] font-bold uppercase tracking-wider ${po.status?.toUpperCase() === 'DRAFT' ? 'text-slate-400' :
+                            po.status?.toUpperCase() === 'CLOSED' ? 'text-green-600' :
+                              'text-blue-500'
+                            }`}>
+                            {po.status?.toUpperCase()}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex-1 overflow-auto scrollbar-hide">
-                  <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900">
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                          <tr>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-10">
-                              <Checkbox
-                                checked={selectedPOs.length === paginatedItems.length && paginatedItems.length > 0}
-                                onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setSelectedPOs(paginatedItems.map(po => po.id));
-                                  } else {
-                                    setSelectedPOs([]);
-                                  }
-                                }}
-                                data-testid="checkbox-select-all"
-                              />
-                            </th>
-                            <th className="px-4 py-3 text-left font-semibold">Date</th>
-                            <th className="px-4 py-3 text-left font-semibold">Purchase Order#</th>
-                            <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference#</th>
-                            <th className="px-4 py-3 text-left font-semibold">Vendor Name</th>
-                            <th className="px-4 py-3 text-left font-semibold">Status</th>
-                            <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Billed Status</th>
-                            <th className="px-4 py-3 text-right font-semibold">Amount</th>
-                            <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Delivery Date</th>
-                            <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider"><Search className="h-3 w-3 inline-block" /></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                          {paginatedItems.map((po) => (
-                            <tr
-                              key={po.id}
-                              className={`hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedPO?.id === po.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                              onClick={() => handlePOClick(po)}
-                              data-testid={`row-po-${po.id}`}
-                            >
-                              <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex-1 overflow-auto scrollbar-hide">
+                    <div className="border rounded-lg overflow-hidden bg-white dark:bg-slate-900">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                            <tr>
+                              <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider w-10">
                                 <Checkbox
-                                  checked={selectedPOs.includes(po.id)}
+                                  checked={selectedPOs.length === paginatedItems.length && paginatedItems.length > 0}
                                   onCheckedChange={(checked) => {
                                     if (checked) {
-                                      setSelectedPOs([...selectedPOs, po.id]);
+                                      setSelectedPOs(paginatedItems.map(po => po.id));
                                     } else {
-                                      setSelectedPOs(selectedPOs.filter(id => id !== po.id));
+                                      setSelectedPOs([]);
                                     }
                                   }}
-                                  data-testid={`checkbox-po-${po.id}`}
+                                  data-testid="checkbox-select-all"
                                 />
-                              </td>
-                              <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                                {formatDate(po.date)}
-                              </td>
-                              <td className="px-4 py-4 text-sm font-medium text-blue-600 hover:underline">
-                                {po.purchaseOrderNumber}
-                              </td>
-                              <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">
-                                {po.referenceNumber || '-'}
-                              </td>
-                              <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-white">
-                                {po.vendorName}
-                              </td>
-                              <td className="px-4 py-4">
-                                <Badge variant="outline" className={`font-bold text-[10px] px-1.5 py-0 h-5 border-none rounded-sm uppercase ${po.status?.toUpperCase() === 'DRAFT' ? 'bg-slate-100 text-slate-400' :
-                                  po.status?.toUpperCase() === 'ISSUED' ? 'bg-blue-100 text-blue-500' :
-                                    po.status?.toUpperCase() === 'RECEIVED' ? 'bg-green-100 text-green-600' :
-                                      po.status?.toUpperCase() === 'CLOSED' ? 'bg-gray-100 text-gray-600' :
-                                        'bg-slate-100 text-slate-600'
-                                  }`}>
-                                  {po.status?.toUpperCase()}
-                                </Badge>
-                              </td>
-                              <td className="px-4 py-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase whitespace-nowrap">
-                                {po.billedStatus || 'YET TO BE BILLED'}
-                              </td>
-                              <td className="px-4 py-4 text-sm font-bold text-right text-slate-900 dark:text-white">
-                                {formatCurrency(po.total)}
-                              </td>
-                              <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
-                                {po.deliveryDate ? formatDate(po.deliveryDate) : '-'}
-                              </td>
-                              <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 hover-elevate">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setLocation(`/purchase-orders/${po.id}/edit`)}>
-                                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                      className="text-red-600 focus:text-red-600"
-                                      onClick={() => handleDelete(po.id)}
-                                    >
-                                      <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </td>
+                              </th>
+                              <th className="px-4 py-3 text-left font-semibold">Date</th>
+                              <th className="px-4 py-3 text-left font-semibold">Purchase Order#</th>
+                              <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Reference#</th>
+                              <th className="px-4 py-3 text-left font-semibold">Vendor Name</th>
+                              <th className="px-4 py-3 text-left font-semibold">Status</th>
+                              <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Billed Status</th>
+                              <th className="px-4 py-3 text-right font-semibold">Amount</th>
+                              <th className="px-4 py-3 text-left font-semibold text-xs text-slate-500 uppercase">Delivery Date</th>
+                              <th className="px-4 py-3 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider"><Search className="h-3 w-3 inline-block" /></th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                            {paginatedItems.map((po) => (
+                              <tr
+                                key={po.id}
+                                className={`hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedPO?.id === po.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                                onClick={() => handlePOClick(po)}
+                                data-testid={`row-po-${po.id}`}
+                              >
+                                <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                                  <Checkbox
+                                    checked={selectedPOs.includes(po.id)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedPOs([...selectedPOs, po.id]);
+                                      } else {
+                                        setSelectedPOs(selectedPOs.filter(id => id !== po.id));
+                                      }
+                                    }}
+                                    data-testid={`checkbox-po-${po.id}`}
+                                  />
+                                </td>
+                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                                  {formatDate(po.date)}
+                                </td>
+                                <td className="px-4 py-4 text-sm font-medium text-blue-600 hover:underline">
+                                  {po.purchaseOrderNumber}
+                                </td>
+                                <td className="px-4 py-4 text-sm text-slate-500 dark:text-slate-400">
+                                  {po.referenceNumber || '-'}
+                                </td>
+                                <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-white">
+                                  {po.vendorName}
+                                </td>
+                                <td className="px-4 py-4">
+                                  <Badge variant="outline" className={`font-bold text-[10px] px-1.5 py-0 h-5 border-none rounded-sm uppercase ${po.status?.toUpperCase() === 'DRAFT' ? 'bg-slate-100 text-slate-400' :
+                                    po.status?.toUpperCase() === 'ISSUED' ? 'bg-blue-100 text-blue-500' :
+                                      po.status?.toUpperCase() === 'RECEIVED' ? 'bg-green-100 text-green-600' :
+                                        po.status?.toUpperCase() === 'CLOSED' ? 'bg-gray-100 text-gray-600' :
+                                          'bg-slate-100 text-slate-600'
+                                    }`}>
+                                    {po.status?.toUpperCase()}
+                                  </Badge>
+                                </td>
+                                <td className="px-4 py-4 text-[10px] font-bold tracking-wider text-slate-400 uppercase whitespace-nowrap">
+                                  {po.billedStatus || 'YET TO BE BILLED'}
+                                </td>
+                                <td className="px-4 py-4 text-sm font-bold text-right text-slate-900 dark:text-white">
+                                  {formatCurrency(po.total)}
+                                </td>
+                                <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-300">
+                                  {po.deliveryDate ? formatDate(po.deliveryDate) : '-'}
+                                </td>
+                                <td className="px-4 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8 hover-elevate">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => setLocation(`/purchase-orders/${po.id}/edit`)}>
+                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem
+                                        className="text-red-600 focus:text-red-600"
+                                        onClick={() => handleDelete(po.id)}
+                                      >
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
+                )}
+              </div>
+              {filteredPOs.length > 0 && (
+                <div className="flex-none border-t border-slate-200 bg-white">
+                  <TablePagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={totalItems}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={goToPage}
+                  />
                 </div>
               )}
             </div>
-            {filteredPOs.length > 0 && (
-              <div className="flex-none border-t border-slate-200 bg-white">
-                <TablePagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  totalItems={totalItems}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={goToPage}
-                />
-              </div>
-            )}
-          </div>
-        </ResizablePanel>
+          </ResizablePanel>
+        )}
 
         {selectedPO && (
           <>
-            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+            {!isCompact && (
+              <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
               <PurchaseOrderDetailPanel
                 purchaseOrder={selectedPO}
                 onClose={handleClosePanel}

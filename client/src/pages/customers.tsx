@@ -1918,376 +1918,277 @@ export default function CustomersPage() {
   const [exportDropdownOpen, setExportDropdownOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    // Initial check
+    checkCompact();
+
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      {isMobile ? (
-        <div className="flex-1 flex flex-col overflow-hidden bg-white">
-          {selectedCustomer ? (
-            <CustomerDetailPanel
-              customer={selectedCustomer}
-              onClose={handleClosePanel}
-              onEdit={handleEditCustomer}
-              onClone={handleClone}
-              onToggleStatus={handleToggleStatus}
-              onDelete={handleDeleteClick}
-            />
-          ) : (
-            <div className="flex flex-col h-full overflow-hidden">
-              {/* Mobile Header */}
-              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10">
-                <div className="flex items-center gap-2">
-                  <DropdownMenu open={filterDropdownOpen} onOpenChange={setFilterDropdownOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="gap-1.5 text-xl font-semibold text-slate-900 dark:text-white p-0 h-auto hover:bg-transparent"
-                      >
-                        {getFilterLabel()}
-                        <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform ${filterDropdownOpen ? 'rotate-180' : ''}`} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64">
-                      {CUSTOMER_FILTERS.map((filter) => (
-                        <DropdownMenuItem
-                          key={filter.id}
-                          className={`flex items-center justify-between ${activeFilter === filter.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                          onClick={() => {
-                            setActiveFilter(filter.id);
-                            setFilterDropdownOpen(false);
-                          }}
-                        >
-                          <span className={activeFilter === filter.id ? 'font-medium text-blue-600' : ''}>
-                            {filter.label}
-                          </span>
-                          <button
-                            className="ml-2 text-slate-400 hover:text-yellow-500"
-                            onClick={(e) => toggleFavorite(filter.id, e)}
-                          >
-                            {favoriteFilters.includes(filter.id) ? (
-                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                            ) : (
-                              <Star className="w-4 h-4" />
-                            )}
-                          </button>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-                <Button onClick={() => setLocation("/customers/new")} size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  <Plus className="h-4 w-4 mr-2" /> New
-                </Button>
-              </div>
-
-              {/* Mobile Search */}
-              <div className="px-4 py-3 border-b border-slate-200 bg-slate-50/50">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                  <Input
-                    placeholder="Search customers..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9 h-9 bg-white"
-                  />
-                </div>
-              </div>
-
-              {/* Mobile List Content */}
-              <div className="flex-1 overflow-auto scrollbar-hide">
-                {loading ? (
-                  <div className="flex items-center justify-center h-32">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                  </div>
-                ) : filteredCustomers.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500">No customers found.</div>
-                ) : (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {paginatedItems.map(customer => (
-                      <div
-                        key={customer.id}
-                        className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer flex justify-between items-center"
-                        onClick={() => handleCustomerClick(customer)}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-blue-600 truncate uppercase">{customer.name}</div>
-                          <div className="text-sm text-slate-500">{customer.companyName || '-'}</div>
-                          <div className="text-xs text-slate-400 mt-1">{formatCurrency(customer.outstandingReceivables || 0)}</div>
-                        </div>
-                        <ChevronRight className="h-4 w-4 text-slate-300" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile Pagination */}
-              {filteredCustomers.length > 0 && (
-                <div className="border-t border-slate-200 bg-white">
-                  <TablePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={goToPage}
-                  />
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      ) : (
-        // Desktop View: Side-by-side using ResizablePanelGroup
-        <ResizablePanelGroup key={selectedCustomer ? "split" : "single"} direction="horizontal" className="h-full w-full">
+      <ResizablePanelGroup key={`${selectedCustomer ? "split" : "single"}-${isCompact ? "compact" : "full"}`} direction="horizontal" className="h-full w-full">
+        {(!isCompact || !selectedCustomer) && (
           <ResizablePanel
-            defaultSize={selectedCustomer ? 33 : 100}
-            minSize={selectedCustomer ? 33 : 100}
-            maxSize={selectedCustomer ? 33 : 100}
+            defaultSize={isCompact ? 100 : (selectedCustomer ? 33 : 100)}
+            minSize={isCompact ? 100 : (selectedCustomer ? 33 : 100)}
+            maxSize={isCompact ? 100 : (selectedCustomer ? 33 : 100)}
             className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
           >
             <div className="flex flex-col h-full overflow-hidden">
-              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-                <div className="flex items-center gap-4 flex-1">
-                  <DropdownMenu open={filterDropdownOpen} onOpenChange={setFilterDropdownOpen}>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className="gap-1.5 text-xl font-semibold text-slate-900 dark:text-white p-0 h-auto hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-left whitespace-normal"
-                        data-testid="button-filter-dropdown"
-                      >
-                        <span className="line-clamp-2">
-                          {getFilterLabel()}
-                        </span>
-                        <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform shrink-0 ${filterDropdownOpen ? 'rotate-180' : ''}`} />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-64">
-                      {CUSTOMER_FILTERS.map((filter) => (
-                        <DropdownMenuItem
-                          key={filter.id}
-                          className={`flex items-center justify-between ${activeFilter === filter.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                          onClick={() => {
-                            setActiveFilter(filter.id);
-                            setFilterDropdownOpen(false);
-                          }}
+              <div className="flex flex-col h-full overflow-hidden">
+                <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                  <div className="flex items-center gap-4 flex-1">
+                    <DropdownMenu open={filterDropdownOpen} onOpenChange={setFilterDropdownOpen}>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          className="gap-1.5 text-xl font-semibold text-slate-900 dark:text-white p-0 h-auto hover:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-left whitespace-normal"
+                          data-testid="button-filter-dropdown"
                         >
-                          <span className={activeFilter === filter.id ? 'font-medium text-blue-600' : ''}>
-                            {filter.label}
+                          <span className="line-clamp-2">
+                            {getFilterLabel()}
                           </span>
-                          <button
-                            className="ml-2 text-slate-400 hover:text-yellow-500"
-                            onClick={(e) => toggleFavorite(filter.id, e)}
+                          <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform shrink-0 ${filterDropdownOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-64">
+                        {CUSTOMER_FILTERS.map((filter) => (
+                          <DropdownMenuItem
+                            key={filter.id}
+                            className={`flex items-center justify-between ${activeFilter === filter.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                            onClick={() => {
+                              setActiveFilter(filter.id);
+                              setFilterDropdownOpen(false);
+                            }}
                           >
-                            {favoriteFilters.includes(filter.id) ? (
-                              <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                            ) : (
-                              <Star className="w-4 h-4" />
-                            )}
-                          </button>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            <span className={activeFilter === filter.id ? 'font-medium text-blue-600' : ''}>
+                              {filter.label}
+                            </span>
+                            <button
+                              className="ml-2 text-slate-400 hover:text-yellow-500"
+                              onClick={(e) => toggleFavorite(filter.id, e)}
+                            >
+                              {favoriteFilters.includes(filter.id) ? (
+                                <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                              ) : (
+                                <Star className="w-4 h-4" />
+                              )}
+                            </button>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
 
-                </div>
+                  </div>
 
-                <div className="flex items-center gap-2">
-                  {selectedCustomer ? (
-                    isSearchVisible ? (
-                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                  <div className="flex items-center gap-2">
+                    {selectedCustomer ? (
+                      isSearchVisible ? (
+                        <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                          <Input
+                            autoFocus
+                            placeholder="Search..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                            className="pl-9 h-9"
+                          />
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="h-9 w-9"
+                          onClick={() => setIsSearchVisible(true)}
+                        >
+                          <Search className="h-4 w-4 text-slate-400" />
+                        </Button>
+                      )
+                    ) : (
+                      <div className="relative w-[240px] hidden md:block">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                         <Input
-                          autoFocus
-                          placeholder="Search..."
+                          placeholder="Search customers..."
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
-                          onBlur={() => !searchTerm && setIsSearchVisible(false)}
                           className="pl-9 h-9"
                         />
                       </div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9"
-                        onClick={() => setIsSearchVisible(true)}
-                      >
-                        <Search className="h-4 w-4 text-slate-400" />
+                    )}
+                    <Button
+                      onClick={() => setLocation("/customers/new")}
+                      className={`bg-blue-600 hover:bg-blue-700 h-9 ${selectedCustomer ? 'w-9 px-0' : ''}`}
+                      size={selectedCustomer ? "icon" : "default"}
+                    >
+                      <Plus className={`h-4 w-4 ${selectedCustomer ? '' : 'mr-2'}`} />
+                      {!selectedCustomer && "New"}
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon" className="h-9 w-9">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuSub open={sortDropdownOpen} onOpenChange={setSortDropdownOpen}>
+                          <DropdownMenuSubTrigger>
+                            <ArrowUpDown className="mr-2 h-4 w-4" />
+                            <span>Sort by</span>
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuPortal>
+                            <DropdownMenuSubContent>
+                              <DropdownMenuItem onClick={() => handleSort("name")}>Name</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSort("company")}>Company Name</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSort("receivables")}>Receivables</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSort("created_at")}>Created Time</DropdownMenuItem>
+                            </DropdownMenuSubContent>
+                          </DropdownMenuPortal>
+                        </DropdownMenuSub>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={fetchCustomers}>
+                          <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-auto scrollbar-hide">
+                  {loading ? (
+                    <div className="flex items-center justify-center h-64">
+                      <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                    </div>
+                  ) : filteredCustomers.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                      <User className="h-12 w-12 text-slate-300 mb-4" />
+                      <h3 className="text-lg font-semibold mb-2">No customers found</h3>
+                      <p className="text-slate-500 mb-4">Try adjusting your filters or search term.</p>
+                      <Button onClick={() => setLocation("/customers/new")} className="bg-blue-600 hover:bg-blue-700">
+                        Create New Customer
                       </Button>
-                    )
+                    </div>
+                  ) : selectedCustomer ? (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredCustomers.map((customer) => (
+                        <div
+                          key={customer.id}
+                          className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedCustomer?.id === customer.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-l-blue-600' : ''}`}
+                          onClick={() => handleCustomerClick(customer)}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className={`font-medium ${selectedCustomer?.id === customer.id ? 'text-blue-600' : 'text-slate-900 dark:text-white'}`}>
+                              {customer.name}
+                            </div>
+                            <div className="text-sm text-slate-500 truncate">{customer.companyName || '-'}</div>
+                            <div className="text-xs text-slate-400 mt-1">{formatCurrency(customer.outstandingReceivables || 0)}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
-                    <div className="relative w-[240px] hidden md:block">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input
-                        placeholder="Search customers..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-9 h-9"
-                      />
+                    <div className="w-full h-full flex flex-col">
+                      <div className="flex-1 overflow-auto scrollbar-hide">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
+                            <tr className="border-b border-slate-200 dark:border-slate-700">
+                              <th className="px-4 py-3 text-left w-10">
+                                <Checkbox
+                                  checked={selectedCustomers.length === paginatedItems.length && paginatedItems.length > 0}
+                                  onCheckedChange={(checked) => {
+                                    if (checked) setSelectedCustomers(paginatedItems.map(c => c.id));
+                                    else setSelectedCustomers([]);
+                                  }}
+                                />
+                              </th>
+                              <th className="px-4 py-3 text-left font-semibold">Name</th>
+                              <th className="px-4 py-3 text-left font-semibold">Company Name</th>
+                              <th className="px-4 py-3 text-left font-semibold">Email</th>
+                              <th className="px-4 py-3 text-right font-semibold">Receivables</th>
+                              <th className="px-4 py-3 text-center w-10"></th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {paginatedItems.map((customer) => (
+                              <tr
+                                key={customer.id}
+                                className={`hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedCustomer?.id === customer.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
+                                onClick={() => handleCustomerClick(customer)}
+                              >
+                                <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                  <Checkbox
+                                    checked={selectedCustomers.includes(customer.id)}
+                                    onCheckedChange={() => toggleSelectCustomer(customer.id, {} as any)}
+                                  />
+                                </td>
+                                <td className="px-4 py-3 text-blue-600 font-medium">{customer.name}</td>
+                                <td className="px-4 py-3 text-slate-500">{customer.companyName || '-'}</td>
+                                <td className="px-4 py-3 text-slate-500">{customer.email}</td>
+                                <td className="px-4 py-3 text-right font-medium">{formatCurrency(customer.outstandingReceivables || 0)}</td>
+                                <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                                        <MoreHorizontal className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => setLocation(`/customers/${customer.id}/edit`)}>
+                                        <Pencil className="mr-2 h-4 w-4" /> Edit
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => { setCustomerToDelete(customer.id); setDeleteDialogOpen(true); }} className="text-red-600">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                      <div className="flex-none border-t border-slate-200 bg-white">
+                        <TablePagination
+                          currentPage={currentPage}
+                          totalPages={totalPages}
+                          totalItems={totalItems}
+                          itemsPerPage={itemsPerPage}
+                          onPageChange={goToPage}
+                        />
+                      </div>
                     </div>
                   )}
-                  <Button
-                    onClick={() => setLocation("/customers/new")}
-                    className={`bg-blue-600 hover:bg-blue-700 h-9 ${selectedCustomer ? 'w-9 px-0' : ''}`}
-                    size={selectedCustomer ? "icon" : "default"}
-                  >
-                    <Plus className={`h-4 w-4 ${selectedCustomer ? '' : 'mr-2'}`} />
-                    {!selectedCustomer && "New"}
-                  </Button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="icon" className="h-9 w-9">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      <DropdownMenuSub open={sortDropdownOpen} onOpenChange={setSortDropdownOpen}>
-                        <DropdownMenuSubTrigger>
-                          <ArrowUpDown className="mr-2 h-4 w-4" />
-                          <span>Sort by</span>
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuPortal>
-                          <DropdownMenuSubContent>
-                            <DropdownMenuItem onClick={() => handleSort("name")}>Name</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSort("company")}>Company Name</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSort("receivables")}>Receivables</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleSort("created_at")}>Created Time</DropdownMenuItem>
-                          </DropdownMenuSubContent>
-                        </DropdownMenuPortal>
-                      </DropdownMenuSub>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={fetchCustomers}>
-                        <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </div>
               </div>
-
-              <div className="flex-1 overflow-auto scrollbar-hide">
-                {loading ? (
-                  <div className="flex items-center justify-center h-64">
-                    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                  </div>
-                ) : filteredCustomers.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                    <User className="h-12 w-12 text-slate-300 mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">No customers found</h3>
-                    <p className="text-slate-500 mb-4">Try adjusting your filters or search term.</p>
-                    <Button onClick={() => setLocation("/customers/new")} className="bg-blue-600 hover:bg-blue-700">
-                      Create New Customer
-                    </Button>
-                  </div>
-                ) : selectedCustomer ? (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredCustomers.map((customer) => (
-                      <div
-                        key={customer.id}
-                        className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedCustomer?.id === customer.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-l-blue-600' : ''}`}
-                        onClick={() => handleCustomerClick(customer)}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className={`font-medium ${selectedCustomer?.id === customer.id ? 'text-blue-600' : 'text-slate-900 dark:text-white'}`}>
-                            {customer.name}
-                          </div>
-                          <div className="text-sm text-slate-500 truncate">{customer.companyName || '-'}</div>
-                          <div className="text-xs text-slate-400 mt-1">{formatCurrency(customer.outstandingReceivables || 0)}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="w-full h-full flex flex-col">
-                    <div className="flex-1 overflow-auto scrollbar-hide">
-                      <table className="w-full text-sm">
-                        <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
-                          <tr className="border-b border-slate-200 dark:border-slate-700">
-                            <th className="px-4 py-3 text-left w-10">
-                              <Checkbox
-                                checked={selectedCustomers.length === paginatedItems.length && paginatedItems.length > 0}
-                                onCheckedChange={(checked) => {
-                                  if (checked) setSelectedCustomers(paginatedItems.map(c => c.id));
-                                  else setSelectedCustomers([]);
-                                }}
-                              />
-                            </th>
-                            <th className="px-4 py-3 text-left font-semibold">Name</th>
-                            <th className="px-4 py-3 text-left font-semibold">Company Name</th>
-                            <th className="px-4 py-3 text-left font-semibold">Email</th>
-                            <th className="px-4 py-3 text-right font-semibold">Receivables</th>
-                            <th className="px-4 py-3 text-center w-10"></th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                          {paginatedItems.map((customer) => (
-                            <tr
-                              key={customer.id}
-                              className={`hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedCustomer?.id === customer.id ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
-                              onClick={() => handleCustomerClick(customer)}
-                            >
-                              <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                <Checkbox
-                                  checked={selectedCustomers.includes(customer.id)}
-                                  onCheckedChange={() => toggleSelectCustomer(customer.id, {} as any)}
-                                />
-                              </td>
-                              <td className="px-4 py-3 text-blue-600 font-medium">{customer.name}</td>
-                              <td className="px-4 py-3 text-slate-500">{customer.companyName || '-'}</td>
-                              <td className="px-4 py-3 text-slate-500">{customer.email}</td>
-                              <td className="px-4 py-3 text-right font-medium">{formatCurrency(customer.outstandingReceivables || 0)}</td>
-                              <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => setLocation(`/customers/${customer.id}/edit`)}>
-                                      <Pencil className="mr-2 h-4 w-4" /> Edit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => { setCustomerToDelete(customer.id); setDeleteDialogOpen(true); }} className="text-red-600">
-                                      <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                    <div className="flex-none border-t border-slate-200 bg-white">
-                      <TablePagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={totalItems}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={goToPage}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
           </ResizablePanel>
+        )}
 
-          {selectedCustomer && (
-            <>
+        {selectedCustomer && (
+          <>
+            {!isCompact && (
               <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-              <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
-                <CustomerDetailPanel
-                  customer={selectedCustomer}
-                  onClose={handleClosePanel}
-                  onEdit={handleEditCustomer}
-                  onClone={handleClone}
-                  onToggleStatus={handleToggleStatus}
-                  onDelete={handleDeleteClick}
-                />
-              </ResizablePanel>
-            </>
-          )}
-        </ResizablePanelGroup>
-      )}
+            )}
+            <ResizablePanel defaultSize={isCompact ? 100 : 65} minSize={isCompact ? 100 : 30} className="bg-white">
+              <CustomerDetailPanel
+                customer={selectedCustomer}
+                onClose={handleClosePanel}
+                onEdit={handleEditCustomer}
+                onClone={handleClone}
+                onToggleStatus={handleToggleStatus}
+                onDelete={handleDeleteClick}
+              />
+            </ResizablePanel>
+          </>
+        )}
+      </ResizablePanelGroup>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

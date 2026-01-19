@@ -1072,329 +1072,507 @@ export default function SalesOrdersPage() {
 
   const { currentPage, totalPages, totalItems, itemsPerPage, paginatedItems, goToPage } = usePagination(filteredOrders, 10);
 
+  const [isCompact, setIsCompact] = useState(false);
+
+  useEffect(() => {
+    const checkCompact = () => {
+      setIsCompact(window.innerWidth < 1280);
+    };
+
+    // Initial check
+    checkCompact();
+
+    window.addEventListener('resize', checkCompact);
+    return () => window.removeEventListener('resize', checkCompact);
+  }, []);
+
   return (
     <div className="flex h-screen animate-in fade-in duration-300 w-full overflow-hidden bg-slate-50">
-      <ResizablePanelGroup key={selectedOrder ? "split" : "single"} direction="horizontal" className="h-full w-full">
-        <ResizablePanel
-          defaultSize={selectedOrder ? 30 : 100}
-          minSize={selectedOrder ? 30 : 100}
-          maxSize={selectedOrder ? 30 : 100}
-          className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
-        >
-          <div className="flex flex-col h-full overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
-              <div className="flex items-center gap-4 flex-1 overflow-hidden">
+      {isCompact ? (
+        <div className="flex-1 flex flex-col overflow-hidden bg-white">
+          {selectedOrder ? (
+            <SalesOrderDetailPanel
+              order={selectedOrder}
+              branding={branding}
+              organization={currentOrganization || undefined}
+              onClose={handleClosePanel}
+              onEdit={handleEditOrder}
+              onDelete={handleDeleteClick}
+              onConvertToInvoice={handleConvertToInvoice}
+              onConvertSelectedItems={handleConvertSelectedItems}
+            />
+          ) : (
+            <div className="flex flex-col h-full overflow-hidden">
+              {/* Mobile/Compact List View */}
+              <ResizablePanelGroup key="single" direction="horizontal" className="h-full w-full">
+                <ResizablePanel
+                  defaultSize={100}
+                  minSize={100}
+                  maxSize={100}
+                  className="flex flex-col bg-white min-w-[100%]"
+                >
+                  <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                    <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                      <div className="flex items-center gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
+                              <span className="text-xl line-clamp-2">
+                                {activeFilter === "All" ? "All Sales Orders" : `${activeFilter} Sales Orders`}
+                              </span>
+                              <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-56">
+                            <DropdownMenuItem onClick={() => setActiveFilter("All")}>All</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Draft")}>Draft</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Pending Approval")}>Pending Approval</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Approved")}>Approved</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Confirmed")}>Confirmed</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Overdue")}>Overdue</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Partially Invoiced")}>Partially Invoiced</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Invoiced")}>Invoiced</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setActiveFilter("Closed")}>Closed</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <span className="text-sm text-slate-400">({salesOrders.length})</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 px-0 sm:hidden"
+                        onClick={() => setIsSearchVisible(!isSearchVisible)}
+                      >
+                        <Search className="h-4 w-4 text-slate-500" />
+                      </Button>
+
+                      <div className="relative w-[240px] hidden sm:block">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          placeholder="Search sales orders..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+
+                      <Button
+                        onClick={() => setLocation("/sales-orders/create")}
+                        className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-9"
+                      >
+                        <Plus className="h-4 w-4" />
+                        <span className="hidden sm:inline">New</span>
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon" className="h-9 w-9">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56">
+                          <DropdownMenuItem onClick={() => fetchSalesOrders()}>
+                            <RefreshCw className="mr-2 h-4 w-4" /> Refresh List
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  {/* Mobile Search Bar (Collapsible) */}
+                  {isSearchVisible && (
+                    <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          placeholder="Search sales orders..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9 h-9"
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex-1 overflow-auto scrollbar-hide">
+                    {loading ? (
+                      <div className="p-8 text-center text-slate-500">Loading sales orders...</div>
+                    ) : filteredOrders.length === 0 ? (
+                      <div className="p-8 text-center text-slate-500">
+                        <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                        <p className="font-medium">No sales orders found</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-slate-100">
+                        {paginatedItems.map((order) => (
+                          <div
+                            key={order.id}
+                            className="p-4 hover:bg-slate-50 cursor-pointer"
+                            onClick={() => handleOrderClick(order)}
+                          >
+                            <div className="flex items-start justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-slate-900 truncate">{order.customerName}</span>
+                              </div>
+                              <span className="font-semibold text-slate-900">{formatCurrency(order.total)}</span>
+                            </div>
+                            <div className="ml-0 flex items-center gap-2 text-sm flex-wrap text-slate-500">
+                              <span>{order.salesOrderNumber}</span>
+                              <span className="text-slate-300">|</span>
+                              <span>{formatDate(order.date)}</span>
+                            </div>
+                            <div className="mt-2 flex items-center gap-2 flex-wrap">
+                              <Badge variant="outline" className={getStatusBadgeStyles(order.orderStatus)}>
+                                {order.orderStatus}
+                              </Badge>
+                              <Badge variant="outline" className={getStatusBadgeStyles(order.invoiceStatus)}>
+                                {order.invoiceStatus}
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-none border-t border-slate-200 bg-white">
+                    <TablePagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={totalItems}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={goToPage}
+                    />
+                  </div>
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </div>
+          )}
+        </div>
+      ) : (
+        <ResizablePanelGroup key={selectedOrder ? "split" : "single"} direction="horizontal" className="h-full w-full">
+          <ResizablePanel
+            defaultSize={selectedOrder ? 30 : 100}
+            minSize={selectedOrder ? 30 : 100}
+            maxSize={selectedOrder ? 30 : 100}
+            className="flex flex-col overflow-hidden bg-white border-r border-slate-200 min-w-[25%]"
+          >
+            <div className="flex flex-col h-full overflow-hidden">
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-white sticky top-0 z-10 min-h-[73px] h-auto">
+                <div className="flex items-center gap-4 flex-1 overflow-hidden">
+                  <div className="flex items-center gap-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
+                          <span className={selectedOrder ? "text-base sm:text-lg lg:text-xl line-clamp-2" : "text-xl line-clamp-2"}>
+                            {activeFilter === "All" ? "All Sales Orders" : `${activeFilter} Sales Orders`}
+                          </span>
+                          <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuItem onClick={() => setActiveFilter("All")}>
+                          All
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Draft")}>
+                          Draft
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Pending Approval")}>
+                          Pending Approval
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Approved")}>
+                          Approved
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Confirmed")}>
+                          Confirmed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Overdue")}>
+                          Overdue
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Partially Invoiced")}>
+                          Partially Invoiced
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Invoiced")}>
+                          Invoiced
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setActiveFilter("Closed")}>
+                          Closed
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    {!selectedOrder && <span className="text-sm text-slate-400">({salesOrders.length})</span>}
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
+                  {selectedOrder ? (
+                    isSearchVisible ? (
+                      <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                          autoFocus
+                          placeholder="Search..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          onBlur={() => !searchTerm && setIsSearchVisible(false)}
+                          className="pl-9 h-9"
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9 px-0"
+                        data-testid="button-search-compact"
+                        onClick={() => setIsSearchVisible(true)}
+                      >
+                        <Search className="h-4 w-4 text-slate-500" />
+                      </Button>
+                    )
+                  ) : (
+                    <div className="relative w-[240px] hidden sm:block">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                      <Input
+                        placeholder="Search sales orders..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9 h-9"
+                        data-testid="input-search-sales-orders"
+                      />
+                    </div>
+                  )}
+                  <Button
+                    onClick={() => setLocation("/sales-orders/create")}
+                    className={cn(
+                      "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9",
+                      selectedOrder && "w-9 px-0"
+                    )}
+                    size={selectedOrder ? "icon" : "default"}
+                    data-testid="button-new-order"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {!selectedOrder && <span>New</span>}
+                  </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="gap-1.5 text-xl font-semibold text-slate-900 hover:text-slate-700 hover:bg-transparent p-0 h-auto transition-colors text-left whitespace-normal">
-                        <span className={selectedOrder ? "text-base sm:text-lg lg:text-xl line-clamp-2" : "text-xl line-clamp-2"}>
-                          {activeFilter === "All" ? "All Sales Orders" : `${activeFilter} Sales Orders`}
-                        </span>
-                        <ChevronDown className="h-4 w-4 text-slate-500 flex-shrink-0" />
+                      <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-56">
-                      <DropdownMenuItem onClick={() => setActiveFilter("All")}>
-                        All
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Draft")}>
-                        Draft
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Pending Approval")}>
-                        Pending Approval
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Approved")}>
-                        Approved
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Confirmed")}>
-                        Confirmed
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Overdue")}>
-                        Overdue
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Partially Invoiced")}>
-                        Partially Invoiced
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Invoiced")}>
-                        Invoiced
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setActiveFilter("Closed")}>
-                        Closed
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <ArrowUpDown className="mr-2 h-4 w-4" />
+                          <span>Sort by</span>
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            <DropdownMenuItem>Date</DropdownMenuItem>
+                            <DropdownMenuItem>Order Number</DropdownMenuItem>
+                            <DropdownMenuItem>Customer Name</DropdownMenuItem>
+                            <DropdownMenuItem>Amount</DropdownMenuItem>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>Import Sales Orders</DropdownMenuItem>
+                      <DropdownMenuItem>Export Sales Orders</DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem>Preferences</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => fetchSalesOrders()}>
+                        <RefreshCw className="mr-2 h-4 w-4" />
+                        Refresh List
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  {!selectedOrder && <span className="text-sm text-slate-400">({salesOrders.length})</span>}
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {selectedOrder ? (
-                  isSearchVisible ? (
-                    <div className="relative w-full max-w-[200px] animate-in slide-in-from-right-5 fade-in-0 duration-200">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <Input
-                        autoFocus
-                        placeholder="Search..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        onBlur={() => !searchTerm && setIsSearchVisible(false)}
-                        className="pl-9 h-9"
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9 px-0"
-                      data-testid="button-search-compact"
-                      onClick={() => setIsSearchVisible(true)}
-                    >
-                      <Search className="h-4 w-4 text-slate-500" />
-                    </Button>
-                  )
-                ) : (
-                  <div className="relative w-[240px] hidden sm:block">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                      placeholder="Search sales orders..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-9 h-9"
-                      data-testid="input-search-sales-orders"
-                    />
-                  </div>
-                )}
-                <Button
-                  onClick={() => setLocation("/sales-orders/create")}
-                  className={cn(
-                    "bg-blue-600 hover:bg-blue-700 gap-1.5 h-9",
-                    selectedOrder && "w-9 px-0"
-                  )}
-                  size={selectedOrder ? "icon" : "default"}
-                  data-testid="button-new-order"
-                >
-                  <Plus className="h-4 w-4" />
-                  {!selectedOrder && <span>New</span>}
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9" data-testid="button-more-options">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <ArrowUpDown className="mr-2 h-4 w-4" />
-                        <span>Sort by</span>
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent>
-                          <DropdownMenuItem>Date</DropdownMenuItem>
-                          <DropdownMenuItem>Order Number</DropdownMenuItem>
-                          <DropdownMenuItem>Customer Name</DropdownMenuItem>
-                          <DropdownMenuItem>Amount</DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Import Sales Orders</DropdownMenuItem>
-                    <DropdownMenuItem>Export Sales Orders</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Preferences</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => fetchSalesOrders()}>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Refresh List
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+
+              {/* Mobile Search Bar */}
+              <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="Search sales orders..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-9 h-9"
+                    data-testid="input-search-mobile"
+                  />
+                </div>
               </div>
-            </div>
 
-            {/* Mobile Search Bar */}
-            <div className="px-4 py-3 flex items-center gap-2 border-b border-slate-200 bg-white sm:hidden">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="Search sales orders..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 h-9"
-                  data-testid="input-search-mobile"
-                />
-              </div>
-            </div>
+              <div className="flex-1 flex flex-col min-h-0 border-t border-slate-200 dark:border-slate-700">
+                <div className="flex-1 overflow-auto scrollbar-hide">
 
-            <div className="flex-1 flex flex-col min-h-0 border-t border-slate-200 dark:border-slate-700">
-              <div className="flex-1 overflow-auto scrollbar-hide">
-
-                {loading ? (
-                  <div className="p-8 text-center text-slate-500">Loading sales orders...</div>
-                ) : filteredOrders.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500">
-                    <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-                    <p className="font-medium">No sales orders found</p>
-                    <p className="text-sm text-slate-400 mt-1">Create your first sales order to get started</p>
-                    <Button
-                      onClick={() => setLocation("/sales-orders/create")}
-                      className="mt-4 bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Plus className="h-4 w-4 mr-2" /> Create Sales Order
-                    </Button>
-                  </div>
-                ) : selectedOrder ? (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredOrders.map((order) => (
-                      <div
-                        key={order.id}
-                        className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedOrder?.id === order.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-l-blue-600' : ''
-                          }`}
-                        onClick={() => handleOrderClick(order)}
-                        data-testid={`card-order-${order.id}`}
+                  {loading ? (
+                    <div className="p-8 text-center text-slate-500">Loading sales orders...</div>
+                  ) : filteredOrders.length === 0 ? (
+                    <div className="p-8 text-center text-slate-500">
+                      <Package className="h-12 w-12 mx-auto mb-4 text-slate-300" />
+                      <p className="font-medium">No sales orders found</p>
+                      <p className="text-sm text-slate-400 mt-1">Create your first sales order to get started</p>
+                      <Button
+                        onClick={() => setLocation("/sales-orders/create")}
+                        className="mt-4 bg-blue-600 hover:bg-blue-700"
                       >
-                        <div className="flex items-start justify-between mb-1">
-                          <div className="flex items-center gap-2">
-                            <Checkbox
-                              checked={selectedOrders.includes(order.id)}
-                              onClick={(e) => toggleSelectOrder(order.id, e)}
-                            />
-                            <span className="font-medium text-slate-900 dark:text-white truncate">{order.customerName}</span>
-                          </div>
-                          <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(order.total)}</span>
-                        </div>
-                        <div className="ml-6 flex items-center gap-2 text-sm flex-wrap">
-                          <span className="text-slate-500">{order.salesOrderNumber}</span>
-                          <span className="text-slate-300">|</span>
-                          <span className="text-slate-500">{formatDate(order.date)}</span>
-                        </div>
-                        <div className="ml-6 mt-2 flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline" className={getStatusBadgeStyles(order.orderStatus)}>
-                            {order.orderStatus}
-                          </Badge>
-                          <Badge variant="outline" className={getStatusBadgeStyles(order.invoiceStatus)}>
-                            {order.invoiceStatus}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4">
-                    <table className="w-full border-separate border-spacing-0">
-                      <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
-                        <tr className="border-b border-slate-200">
-                          <th className="w-12 px-4 py-4">
-                            <Checkbox />
-                          </th>
-                          <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Date</th>
-                          <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Sales Order#</th>
-                          <th className="px-5 py-4 text-left font-semibold text-xs text-slate-500 uppercase whitespace-nowrap">Reference#</th>
-                          <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Customer Name</th>
-                          <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Status</th>
-                          <th className="px-5 py-4 text-left font-semibold text-xs text-slate-500 uppercase whitespace-nowrap">Invoiced</th>
-                          <th className="px-5 py-4 text-left font-semibold text-xs text-slate-500 uppercase whitespace-nowrap">Payment</th>
-                          <th className="px-5 py-4 text-right font-semibold text-sm whitespace-nowrap">Amount</th>
-                          <th className="w-10 px-4 py-4"></th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {paginatedItems.map((order) => (
-                          <tr
-                            key={order.id}
-                            className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
-                            onClick={() => handleOrderClick(order)}
-                            data-testid={`row-order-${order.id}`}
-                          >
-                            <td className="px-4 py-4">
+                        <Plus className="h-4 w-4 mr-2" /> Create Sales Order
+                      </Button>
+                    </div>
+                  ) : selectedOrder ? (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {filteredOrders.map((order) => (
+                        <div
+                          key={order.id}
+                          className={`p-4 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors ${selectedOrder?.id === order.id ? 'bg-blue-50 dark:bg-blue-900/20 border-l-2 border-l-blue-600' : ''
+                            }`}
+                          onClick={() => handleOrderClick(order)}
+                          data-testid={`card-order-${order.id}`}
+                        >
+                          <div className="flex items-start justify-between mb-1">
+                            <div className="flex items-center gap-2">
                               <Checkbox
                                 checked={selectedOrders.includes(order.id)}
                                 onClick={(e) => toggleSelectOrder(order.id, e)}
                               />
-                            </td>
-                            <td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">{formatDate(order.date)}</td>
-                            <td className="px-5 py-4 whitespace-nowrap">
-                              <span className="text-blue-600 font-medium">{order.salesOrderNumber}</span>
-                            </td>
-                            <td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">{order.referenceNumber || '-'}</td>
-                            <td className="px-5 py-4 text-sm text-slate-900 dark:text-white font-medium">{order.customerName}</td>
-                            <td className="px-5 py-4 whitespace-nowrap">
-                              <Badge variant="outline" className={getStatusBadgeStyles(order.orderStatus)}>
-                                {order.orderStatus}
-                              </Badge>
-                            </td>
-                            <td className="px-5 py-4 whitespace-nowrap">
-                              <Badge variant="outline" className={getStatusBadgeStyles(order.invoiceStatus)}>
-                                {order.invoiceStatus}
-                              </Badge>
-                            </td>
-                            <td className="px-5 py-4 whitespace-nowrap">
-                              <Badge variant="outline" className={getStatusBadgeStyles(order.paymentStatus)}>
-                                {order.paymentStatus}
-                              </Badge>
-                            </td>
-                            <td className="px-5 py-4 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">{formatCurrency(order.total)}</td>
-                            <td className="px-4 py-4">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setLocation(`/sales-orders/${order.id}/edit`); }}>
-                                    <Pencil className="mr-2 h-4 w-4" /> Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Receipt className="mr-2 h-4 w-4" /> Convert to Invoice
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </td>
+                              <span className="font-medium text-slate-900 dark:text-white truncate">{order.customerName}</span>
+                            </div>
+                            <span className="font-semibold text-slate-900 dark:text-white">{formatCurrency(order.total)}</span>
+                          </div>
+                          <div className="ml-6 flex items-center gap-2 text-sm flex-wrap">
+                            <span className="text-slate-500">{order.salesOrderNumber}</span>
+                            <span className="text-slate-300">|</span>
+                            <span className="text-slate-500">{formatDate(order.date)}</span>
+                          </div>
+                          <div className="ml-6 mt-2 flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className={getStatusBadgeStyles(order.orderStatus)}>
+                              {order.orderStatus}
+                            </Badge>
+                            <Badge variant="outline" className={getStatusBadgeStyles(order.invoiceStatus)}>
+                              {order.invoiceStatus}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4">
+                      <table className="w-full border-separate border-spacing-0">
+                        <thead className="bg-slate-50 dark:bg-slate-800 sticky top-0 z-10">
+                          <tr className="border-b border-slate-200">
+                            <th className="w-12 px-4 py-4">
+                              <Checkbox />
+                            </th>
+                            <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Date</th>
+                            <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Sales Order#</th>
+                            <th className="px-5 py-4 text-left font-semibold text-xs text-slate-500 uppercase whitespace-nowrap">Reference#</th>
+                            <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Customer Name</th>
+                            <th className="px-5 py-4 text-left font-semibold text-sm whitespace-nowrap">Status</th>
+                            <th className="px-5 py-4 text-left font-semibold text-xs text-slate-500 uppercase whitespace-nowrap">Invoiced</th>
+                            <th className="px-5 py-4 text-left font-semibold text-xs text-slate-500 uppercase whitespace-nowrap">Payment</th>
+                            <th className="px-5 py-4 text-right font-semibold text-sm whitespace-nowrap">Amount</th>
+                            <th className="w-10 px-4 py-4"></th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {paginatedItems.map((order) => (
+                            <tr
+                              key={order.id}
+                              className="hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
+                              onClick={() => handleOrderClick(order)}
+                              data-testid={`row-order-${order.id}`}
+                            >
+                              <td className="px-4 py-4">
+                                <Checkbox
+                                  checked={selectedOrders.includes(order.id)}
+                                  onClick={(e) => toggleSelectOrder(order.id, e)}
+                                />
+                              </td>
+                              <td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">{formatDate(order.date)}</td>
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <span className="text-blue-600 font-medium">{order.salesOrderNumber}</span>
+                              </td>
+                              <td className="px-5 py-4 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap">{order.referenceNumber || '-'}</td>
+                              <td className="px-5 py-4 text-sm text-slate-900 dark:text-white font-medium">{order.customerName}</td>
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <Badge variant="outline" className={getStatusBadgeStyles(order.orderStatus)}>
+                                  {order.orderStatus}
+                                </Badge>
+                              </td>
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <Badge variant="outline" className={getStatusBadgeStyles(order.invoiceStatus)}>
+                                  {order.invoiceStatus}
+                                </Badge>
+                              </td>
+                              <td className="px-5 py-4 whitespace-nowrap">
+                                <Badge variant="outline" className={getStatusBadgeStyles(order.paymentStatus)}>
+                                  {order.paymentStatus}
+                                </Badge>
+                              </td>
+                              <td className="px-5 py-4 text-right font-semibold text-slate-900 dark:text-white whitespace-nowrap">{formatCurrency(order.total)}</td>
+                              <td className="px-4 py-4">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                      <MoreHorizontal className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setLocation(`/sales-orders/${order.id}/edit`); }}>
+                                      <Pencil className="mr-2 h-4 w-4" /> Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem>
+                                      <Receipt className="mr-2 h-4 w-4" /> Convert to Invoice
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-destructive">
+                                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                {filteredOrders.length > 0 && (
+                  <div className="flex-none border-t border-slate-200 bg-white">
+                    <TablePagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      totalItems={totalItems}
+                      itemsPerPage={itemsPerPage}
+                      onPageChange={goToPage}
+                    />
                   </div>
                 )}
               </div>
-              {filteredOrders.length > 0 && (
-                <div className="flex-none border-t border-slate-200 bg-white">
-                  <TablePagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    totalItems={totalItems}
-                    itemsPerPage={itemsPerPage}
-                    onPageChange={goToPage}
-                  />
-                </div>
-              )}
             </div>
-          </div>
 
-        </ResizablePanel>
+          </ResizablePanel>
 
-        {selectedOrder && (
-          <>
-            <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
-            <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
-              <SalesOrderDetailPanel
-                order={selectedOrder}
-                branding={branding}
-                organization={currentOrganization || undefined}
-                onClose={handleClosePanel}
-                onEdit={handleEditOrder}
-                onDelete={handleDeleteClick}
-                onConvertToInvoice={handleConvertToInvoice}
-                onConvertSelectedItems={handleConvertSelectedItems}
-              />
-            </ResizablePanel>
-          </>
-        )}
-      </ResizablePanelGroup>
+          {selectedOrder && (
+            <>
+              <ResizableHandle withHandle className="w-1 bg-slate-200 hover:bg-blue-400 hover:w-1.5 transition-all cursor-col-resize" />
+              <ResizablePanel defaultSize={65} minSize={30} className="bg-white">
+                <SalesOrderDetailPanel
+                  order={selectedOrder}
+                  branding={branding}
+                  organization={currentOrganization || undefined}
+                  onClose={handleClosePanel}
+                  onEdit={handleEditOrder}
+                  onDelete={handleDeleteClick}
+                  onConvertToInvoice={handleConvertToInvoice}
+                  onConvertSelectedItems={handleConvertSelectedItems}
+                />
+              </ResizablePanel>
+            </>
+          )}
+        </ResizablePanelGroup>
+      )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
